@@ -6,7 +6,7 @@
   <style>
     @page {
       size: A4;
-      margin: 1.6cm 1.4cm;
+      margin: 1.5cm 1.4cm;
       @bottom-right {
         content: "Página " counter(page);
         font-size: 8pt;
@@ -30,50 +30,50 @@
       padding: 0;
     }
 
-    /* Encabezado portada/header */
+    /* Encabezado formal */
     .header-box {
-      border-left: 5px solid #2b6cb0;
+      border-left: 5px solid #0078d4;
       padding: 10px 16px;
-      background: #ebf8ff;
+      background: #f3f9fd;
       border-radius: 4px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     
     .header-title {
-      font-size: 16pt;
+      font-size: 15pt;
       font-weight: 800;
-      color: #1a365d;
-      margin: 0 0 6px 0;
+      color: #0c3b60;
+      margin: 0 0 4px 0;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     .header-subtitle {
-      font-size: 10.5pt;
+      font-size: 10pt;
       font-weight: 600;
-      color: #2b6cb0;
-      margin: 0 0 10px 0;
+      color: #0078d4;
+      margin: 0 0 8px 0;
     }
 
     .meta-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 6px 20px;
+      gap: 5px 20px;
       font-size: 8.5pt;
-      border-top: 1px solid #bee3f8;
+      border-top: 1px solid #cce4f7;
       padding-top: 8px;
     }
 
     .meta-item strong {
-      color: #2c5282;
+      color: #004578;
     }
 
     h2 {
-      font-size: 11.5pt;
+      font-size: 11pt;
       color: #1a202c;
       border-bottom: 2px solid #e2e8f0;
       padding-bottom: 4px;
-      margin-top: 18px;
+      margin-top: 16px;
       margin-bottom: 8px;
       display: flex;
       align-items: center;
@@ -81,7 +81,7 @@
     }
 
     .badge-num {
-      background: #3182ce;
+      background: #0078d4;
       color: white;
       font-size: 8pt;
       padding: 2px 7px;
@@ -91,143 +91,185 @@
     }
 
     p {
-      margin: 0 0 8px 0;
-      font-size: 9pt;
+      margin: 0 0 6px 0;
+      font-size: 8.8pt;
       color: #4a5568;
     }
 
-    /* Terminal Window Mockup */
-    .terminal {
-      background: #0d1117;
-      border-radius: 6px;
-      border: 1px solid #30363d;
+    /* Windows Terminal Mockup Exact Replica */
+    .win-terminal {
+      background: #0c0c0c;
+      border-radius: 8px;
+      border: 1px solid #2d2d2d;
       margin: 8px 0 14px 0;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
       overflow: hidden;
       page-break-inside: avoid;
     }
 
-    .terminal-header {
-      background: #161b22;
-      padding: 6px 12px;
+    .win-titlebar {
+      background: #1f1f1f;
+      height: 32px;
       display: flex;
       align-items: center;
-      border-bottom: 1px solid #21262d;
+      justify-content: space-between;
+      border-bottom: 1px solid #141414;
+      user-select: none;
     }
 
-    .terminal-buttons {
+    .win-tabs {
       display: flex;
-      gap: 5px;
-      margin-right: 12px;
+      align-items: center;
+      height: 100%;
+      padding-left: 8px;
+      gap: 2px;
     }
 
-    .btn {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-
-    .btn-red { background: #ff5f56; }
-    .btn-yellow { background: #ffbd2e; }
-    .btn-green { background: #27c93f; }
-
-    .terminal-title {
-      font-family: "Consolas", "Courier New", monospace;
+    .win-tab {
+      display: flex;
+      align-items: center;
+      background: #0c0c0c;
+      color: #ffffff;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 5px 5px 0 0;
       font-size: 7.5pt;
-      color: #8b949e;
-      flex-grow: 1;
-      text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      gap: 6px;
+      font-weight: 500;
     }
 
-    .terminal-body {
+    .win-tab-icon {
+      width: 12px;
+      height: 12px;
+      background: #0078d4;
+      color: white;
+      font-size: 8px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 2px;
+      font-family: monospace;
+    }
+
+    .win-tab-close {
+      color: #8a8a8a;
+      font-size: 10px;
+      margin-left: 4px;
+      font-weight: bold;
+    }
+
+    .win-tab-add {
+      color: #8a8a8a;
+      padding: 0 6px;
+      font-size: 12px;
+    }
+
+    .win-tab-arrow {
+      color: #8a8a8a;
+      font-size: 8px;
+    }
+
+    /* Windows 11 window controls (Minimize, Maximize, Close on right side) */
+    .win-controls {
+      display: flex;
+      height: 100%;
+    }
+
+    .win-btn {
+      width: 44px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 10px;
+      cursor: default;
+    }
+
+    .win-btn-minimize svg,
+    .win-btn-maximize svg,
+    .win-btn-close svg {
+      width: 10px;
+      height: 10px;
+      stroke: #cccccc;
+      stroke-width: 1.2;
+      fill: none;
+    }
+
+    .win-terminal-body {
       padding: 10px 14px;
-      font-family: "Consolas", "Cascadia Code", "Courier New", monospace;
-      font-size: 7.5pt;
-      line-height: 1.35;
-      color: #c9d1d9;
+      font-family: "Cascadia Mono", "Cascadia Code", "Consolas", monospace;
+      font-size: 7.4pt;
+      line-height: 1.34;
+      color: #cccccc;
       white-space: pre-wrap;
       word-break: break-all;
     }
 
-    .prompt {
-      color: #7ee787;
+    .ps-header {
+      color: #cccccc;
+      margin-bottom: 6px;
+    }
+
+    .prompt-ps {
+      color: #cccccc;
+      font-weight: bold;
+    }
+
+    .prompt-ssh {
+      color: #cccccc;
       font-weight: bold;
     }
 
     .cmd {
-      color: #f0883e;
+      color: #ffffff;
       font-weight: bold;
-    }
-
-    .comment {
-      color: #8b949e;
-      font-style: italic;
     }
 
     .highlight-success {
-      color: #56d364;
+      color: #13a10e;
       font-weight: bold;
     }
 
-    .highlight-badge {
-      background: #1f6feb;
-      color: #ffffff;
-      padding: 1px 4px;
-      border-radius: 3px;
+    .highlight-status {
+      color: #3b78ff;
+      font-weight: bold;
     }
 
-    /* Grid layout para arquitecturas */
-    .arch-card {
-      background: #f7fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 5px;
-      padding: 8px 12px;
-      margin-bottom: 10px;
-      font-size: 8.5pt;
+    .highlight-accent {
+      color: #e5e510;
+    }
+
+    .comment {
+      color: #767676;
+      font-style: italic;
     }
 
     .arch-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+      gap: 7px;
       margin: 8px 0;
     }
 
     .arch-item {
-      background: #edf2f7;
+      background: #f7fafc;
       padding: 6px 8px;
       border-radius: 4px;
-      border-left: 3px solid #4299e1;
+      border-left: 3px solid #0078d4;
       font-size: 8pt;
     }
 
     .arch-item strong {
-      color: #2b6cb0;
+      color: #0078d4;
       display: block;
+      margin-bottom: 2px;
     }
 
     .page-break {
       page-break-before: always;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 8pt;
-      margin: 6px 0 10px 0;
-    }
-
-    th, td {
-      border: 1px solid #cbd5e0;
-      padding: 5px 8px;
-      text-align: left;
-    }
-
-    th {
-      background: #edf2f7;
-      color: #2d3748;
-      font-weight: 700;
     }
   </style>
 </head>
@@ -242,36 +284,60 @@
       <div class="meta-item"><strong>Materia:</strong> Temas Selectos de Redes y Seguridad (TSIC2 / DevOps)</div>
       <div class="meta-item"><strong>Profesor:</strong> Daniel Guerrero</div>
       <div class="meta-item"><strong>Fecha de Ejecución:</strong> 13 de Noviembre de 2026</div>
-      <div class="meta-item"><strong>Sistema Operativo:</strong> Rocky Linux 10.2 (Red Quartz - x86_64)</div>
+      <div class="meta-item"><strong>Sistema Operativo:</strong> Rocky Linux 10.2 (Red Quartz - x86_64) en VMware</div>
       <div class="meta-item"><strong>Plataforma:</strong> Kubernetes v1.31.14 &bull; containerd v2.4.2 &bull; Flannel CNI</div>
     </div>
   </div>
 
-  <h2><span class="badge-num">1</span> Arquitectura del Laboratorio y Objetos Desplegados</h2>
-  <p>El objetivo del ejercicio integrador es construir y aplicar un único manifiesto declarativo (<code>todo-en-uno.yaml</code>) que orqueste la totalidad de los objetos aprendidos en Kubernetes bajo las mejores prácticas de desacoplamiento y 12-Factor App:</p>
+  <h2><span class="badge-num">1</span> Arquitectura del Despliegue Unificado</h2>
+  <p>El ejercicio integrador consolida la totalidad de los objetos fundamentales de Kubernetes en un único manifiesto declarativo (<code>todo-en-uno.yaml</code>) respetando las mejores prácticas de desacoplamiento:</p>
 
   <div class="arch-grid">
     <div class="arch-item"><strong>Namespace (mi-app)</strong>Aislamiento multi-tenant y delimitación lógica de recursos.</div>
-    <div class="arch-item"><strong>ServiceAccount (mi-app-sa)</strong>Identidad de seguridad de menor privilegio para los pods.</div>
-    <div class="arch-item"><strong>ConfigMap (mi-app-config)</strong>Inyección desacoplada de variables y montaje de index.html.</div>
-    <div class="arch-item"><strong>Secret (mi-app-secret)</strong>Inyección protegida de API_KEY en Base64.</div>
+    <div class="arch-item"><strong>ServiceAccount (mi-app-sa)</strong>Identidad de ejecución segura bajo el principio de menor privilegio.</div>
+    <div class="arch-item"><strong>ConfigMap (mi-app-config)</strong>Inyección de variables desacopladas y volumen con index.html.</div>
+    <div class="arch-item"><strong>Secret (mi-app-secret)</strong>Inyección protegida de API_KEY codificada en Base64.</div>
     <div class="arch-item"><strong>Deployment (3 réplicas)</strong>Pods distribuidos con Rolling Update, Readiness y Liveness.</div>
-    <div class="arch-item"><strong>Service (NodePort :30090)</strong>Publicación balanceada hacia el exterior en la IP del host.</div>
+    <div class="arch-item"><strong>Service (NodePort :30090)</strong>Publicación balanceada hacia el host físico en el puerto 30090.</div>
   </div>
 
   <h2><span class="badge-num">2</span> Evidencia 1: Estado Operativo del Clúster Kubernetes</h2>
-  <p>Verificación del nodo Control Plane en estado <code>Ready</code> y todos los pods de infraestructura de <code>kube-system</code> y <code>kube-flannel</code> en estado <code>Running</code>.</p>
+  <p>Conexión SSH desde Windows Terminal hacia el nodo Rocky Linux (<code>192.168.71.128</code>), verificando nodo en estado <code>Ready</code> y componentes del plano de control activos.</p>
 
-  <div class="terminal">
-    <div class="terminal-header">
-      <div class="terminal-buttons"><span class="btn btn-red"></span><span class="btn btn-yellow"></span><span class="btn btn-green"></span></div>
-      <div class="terminal-title">root@localhost:~ (SSH 192.168.71.128) - cluster-status</div>
+  <!-- WINDOWS TERMINAL REPLICA 1 -->
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab">
+          <div class="win-tab-icon">&gt;_</div>
+          <span>Windows PowerShell</span>
+          <span class="win-tab-close">&times;</span>
+        </div>
+        <span class="win-tab-add">+</span>
+        <span class="win-tab-arrow">&#9662;</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn win-btn-minimize">
+          <svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg>
+        </div>
+        <div class="win-btn win-btn-maximize">
+          <svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg>
+        </div>
+        <div class="win-btn win-btn-close">
+          <svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg>
+        </div>
+      </div>
     </div>
-    <div class="terminal-body"><span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl get nodes -o wide</span>
+    <div class="win-terminal-body"><div class="ps-header">Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.</div>
+<span class="prompt-ps">PS C:\Users\david&gt;</span> <span class="cmd">ssh root@192.168.71.128</span>
+Last login: Fri Nov 13 05:48:12 2026 from 192.168.71.1
+
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl get nodes -o wide</span>
 NAME                    STATUS   ROLES           AGE     VERSION    INTERNAL-IP      EXTERNAL-IP   OS-IMAGE                        KERNEL-VERSION                      CONTAINER-RUNTIME
 localhost.localdomain   <span class="highlight-success">Ready</span>    control-plane   3m12s   v1.31.14   192.168.71.128   &lt;none&gt;        Rocky Linux 10.2 (Red Quartz)   6.12.0-211.16.1.el10_2.0.1.x86_64   containerd://2.4.2
 
-<span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n kube-system</span>
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n kube-system</span>
 NAME                                            READY   STATUS    RESTARTS   AGE
 coredns-7c65d6cfc9-bmvxj                        1/1     <span class="highlight-success">Running</span>   0          3m03s
 coredns-7c65d6cfc9-xhgzf                        1/1     <span class="highlight-success">Running</span>   0          3m03s
@@ -281,7 +347,7 @@ kube-controller-manager-localhost.localdomain   1/1     <span class="highlight-s
 kube-proxy-h54nn                                1/1     <span class="highlight-success">Running</span>   0          3m04s
 kube-scheduler-localhost.localdomain            1/1     <span class="highlight-success">Running</span>   0          3m09s
 
-<span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n kube-flannel</span>
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n kube-flannel</span>
 NAME                    READY   STATUS    RESTARTS   AGE
 kube-flannel-ds-ts6c4   1/1     <span class="highlight-success">Running</span>   0          2m56s</div>
   </div>
@@ -289,12 +355,31 @@ kube-flannel-ds-ts6c4   1/1     <span class="highlight-success">Running</span>  
   <h2><span class="badge-num">3</span> Evidencia 2: Aplicación del Manifiesto Unificado y Recursos Desplegados</h2>
   <p>Ejecución declarativa de <code>todo-en-uno.yaml</code> con los 6 objetos creados dentro del namespace <code>mi-app</code>.</p>
 
-  <div class="terminal">
-    <div class="terminal-header">
-      <div class="terminal-buttons"><span class="btn btn-red"></span><span class="btn btn-yellow"></span><span class="btn btn-green"></span></div>
-      <div class="terminal-title">root@localhost:~ (SSH 192.168.71.128) - deploy-integrador</div>
+  <!-- WINDOWS TERMINAL REPLICA 2 -->
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab">
+          <div class="win-tab-icon">&gt;_</div>
+          <span>Windows PowerShell</span>
+          <span class="win-tab-close">&times;</span>
+        </div>
+        <span class="win-tab-add">+</span>
+        <span class="win-tab-arrow">&#9662;</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn win-btn-minimize">
+          <svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg>
+        </div>
+        <div class="win-btn win-btn-maximize">
+          <svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg>
+        </div>
+        <div class="win-btn win-btn-close">
+          <svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg>
+        </div>
+      </div>
     </div>
-    <div class="terminal-body"><span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl apply -f /root/todo-en-uno.yaml</span>
+    <div class="win-terminal-body"><span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl apply -f /root/todo-en-uno.yaml</span>
 namespace/mi-app created
 serviceaccount/mi-app-sa created
 configmap/mi-app-config created
@@ -302,14 +387,14 @@ secret/mi-app-secret created
 deployment.apps/mi-app-deployment created
 service/mi-app-service created
 
-<span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl get all,sa,configmap,secret -n mi-app -o wide</span>
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl get all,sa,configmap,secret -n mi-app -o wide</span>
 NAME                                    READY   STATUS    RESTARTS   AGE   IP           NODE                    NOMINATED NODE   READINESS GATES
 pod/mi-app-deployment-bbd479cc4-2ntl6   1/1     <span class="highlight-success">Running</span>   0          98s   10.244.0.5   localhost.localdomain   &lt;none&gt;           &lt;none&gt;
 pod/mi-app-deployment-bbd479cc4-m24nf   1/1     <span class="highlight-success">Running</span>   0          98s   10.244.0.4   localhost.localdomain   &lt;none&gt;           &lt;none&gt;
 pod/mi-app-deployment-bbd479cc4-xqp7l   1/1     <span class="highlight-success">Running</span>   0          98s   10.244.0.6   localhost.localdomain   &lt;none&gt;           &lt;none&gt;
 
 NAME                     TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE   SELECTOR
-service/mi-app-service   <span class="highlight-badge">NodePort</span>   10.97.84.10   &lt;none&gt;        80:30090/TCP   98s   app=mi-app
+service/mi-app-service   <span class="highlight-status">NodePort</span>   10.97.84.10   &lt;none&gt;        80:30090/TCP   98s   app=mi-app
 
 NAME                                READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES       SELECTOR
 deployment.apps/mi-app-deployment   3/3     3            3           98s   nginx        nginx:1.25   app=mi-app
@@ -334,20 +419,39 @@ secret/mi-app-secret   Opaque   1      98s</div>
   <h2><span class="badge-num">4</span> Evidencia 3: Auditoría Interna de ConfigMap y Secret en Pods</h2>
   <p>Inspección del entorno del contenedor confirmando la inyección de la variable del ConfigMap (<code>APP_ENV=demo</code>) y la desencriptación transparente del Secret (<code>API_KEY</code>).</p>
 
-  <div class="terminal">
-    <div class="terminal-header">
-      <div class="terminal-buttons"><span class="btn btn-red"></span><span class="btn btn-yellow"></span><span class="btn btn-green"></span></div>
-      <div class="terminal-title">root@localhost:~ (SSH 192.168.71.128) - pod-inspection</div>
+  <!-- WINDOWS TERMINAL REPLICA 3 -->
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab">
+          <div class="win-tab-icon">&gt;_</div>
+          <span>Windows PowerShell</span>
+          <span class="win-tab-close">&times;</span>
+        </div>
+        <span class="win-tab-add">+</span>
+        <span class="win-tab-arrow">&#9662;</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn win-btn-minimize">
+          <svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg>
+        </div>
+        <div class="win-btn win-btn-maximize">
+          <svg viewBox="0 0 10 10"><rect x="1" width="8" height="8"></rect></svg>
+        </div>
+        <div class="win-btn win-btn-close">
+          <svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg>
+        </div>
+      </div>
     </div>
-    <div class="terminal-body"><span class="prompt">[root@localhost ~]#</span> <span class="cmd">POD=$(kubectl get pods -n mi-app -l app=mi-app -o jsonpath='{.items[0].metadata.name}')</span>
-<span class="prompt">[root@localhost ~]#</span> <span class="cmd">echo "Pod seleccionado: $POD"</span>
+    <div class="win-terminal-body"><span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">POD=$(kubectl get pods -n mi-app -l app=mi-app -o jsonpath='{.items[0].metadata.name}')</span>
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">echo "Pod seleccionado: $POD"</span>
 Pod seleccionado: mi-app-deployment-bbd479cc4-2ntl6
 
-<span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl exec -n mi-app $POD -- env | grep -E 'APP_ENV|API_KEY'</span>
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl exec -n mi-app $POD -- env | grep -E 'APP_ENV|API_KEY'</span>
 <span class="highlight-success">APP_ENV=demo</span>
 <span class="highlight-success">API_KEY=super-secret-api-key-12345</span>
 
-<span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl exec -n mi-app $POD -- cat /usr/share/nginx/html/index.html | head -n 14</span>
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl exec -n mi-app $POD -- cat /usr/share/nginx/html/index.html | head -n 14</span>
 &lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;&lt;title&gt;Kubernetes Demo&lt;/title&gt;
@@ -365,14 +469,33 @@ Pod seleccionado: mi-app-deployment-bbd479cc4-2ntl6
   </div>
 
   <h2><span class="badge-num">5</span> Evidencia 4: Validación de Conectividad HTTP Externa (NodePort 30090)</h2>
-  <p>Petición HTTP efectuada desde la terminal y desde el navegador físico del anfitrión Windows hacia <code>http://192.168.71.128:30090</code> recibiendo encabezados <code>HTTP 200 OK</code>.</p>
+  <p>Petición HTTP efectuada directamente desde la consola PowerShell de Windows hacia <code>http://192.168.71.128:30090</code> obteniendo respuesta exitosa <code>HTTP 200 OK</code>.</p>
 
-  <div class="terminal">
-    <div class="terminal-header">
-      <div class="terminal-buttons"><span class="btn btn-red"></span><span class="btn btn-yellow"></span><span class="btn btn-green"></span></div>
-      <div class="terminal-title">Windows PowerShell (Host 192.168.71.1) - http-probe</div>
+  <!-- WINDOWS TERMINAL REPLICA 4 -->
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab">
+          <div class="win-tab-icon">&gt;_</div>
+          <span>Windows PowerShell</span>
+          <span class="win-tab-close">&times;</span>
+        </div>
+        <span class="win-tab-add">+</span>
+        <span class="win-tab-arrow">&#9662;</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn win-btn-minimize">
+          <svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg>
+        </div>
+        <div class="win-btn win-btn-maximize">
+          <svg viewBox="0 0 10 10"><rect x="1" width="8" height="8"></rect></svg>
+        </div>
+        <div class="win-btn win-btn-close">
+          <svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg>
+        </div>
+      </div>
     </div>
-    <div class="terminal-body"><span class="prompt">PS C:\Users\david&gt;</span> <span class="cmd">curl.exe -sI http://192.168.71.128:30090</span>
+    <div class="win-terminal-body"><span class="prompt-ps">PS C:\Users\david&gt;</span> <span class="cmd">curl.exe -sI http://192.168.71.128:30090</span>
 <span class="highlight-success">HTTP/1.1 200 OK</span>
 Server: nginx/1.25.5
 Date: Fri, 13 Nov 2026 05:56:34 GMT
@@ -384,36 +507,74 @@ ETag: "6af6a67e-430"
 Accept-Ranges: bytes</div>
   </div>
 
-  <h2><span class="badge-num">6</span> Evidencia 5 (Reto): Demostración de Autorrecuperación (Self-Healing)</h2>
-  <p>Se eliminó intencionalmente el pod activo <code>2ntl6</code>. El controlador Deployment detectó la discrepancia con el estado deseado (3 réplicas) y generó en 4 segundos un nuevo pod de reemplazo (<code>ghwh4</code>).</p>
+  <h2><span class="badge-num">6</span> Evidencia 5 (Reto 1): Demostración de Autorrecuperación (Self-Healing)</h2>
+  <p>Se eliminó intencionalmente el pod <code>2ntl6</code>. El controlador detectó la discrepancia con el estado deseado (3 réplicas) y generó en 4 segundos un pod sustituto (<code>ghwh4</code>).</p>
 
-  <div class="terminal">
-    <div class="terminal-header">
-      <div class="terminal-buttons"><span class="btn btn-red"></span><span class="btn btn-yellow"></span><span class="btn btn-green"></span></div>
-      <div class="terminal-title">root@localhost:~ (SSH 192.168.71.128) - self-healing-test</div>
+  <!-- WINDOWS TERMINAL REPLICA 5 -->
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab">
+          <div class="win-tab-icon">&gt;_</div>
+          <span>Windows PowerShell</span>
+          <span class="win-tab-close">&times;</span>
+        </div>
+        <span class="win-tab-add">+</span>
+        <span class="win-tab-arrow">&#9662;</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn win-btn-minimize">
+          <svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg>
+        </div>
+        <div class="win-btn win-btn-maximize">
+          <svg viewBox="0 0 10 10"><rect x="1" width="8" height="8"></rect></svg>
+        </div>
+        <div class="win-btn win-btn-close">
+          <svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg>
+        </div>
+      </div>
     </div>
-    <div class="terminal-body"><span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl delete pod mi-app-deployment-bbd479cc4-2ntl6 -n mi-app</span>
+    <div class="win-terminal-body"><span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl delete pod mi-app-deployment-bbd479cc4-2ntl6 -n mi-app</span>
 pod "mi-app-deployment-bbd479cc4-2ntl6" deleted
 
-<span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n mi-app</span>
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n mi-app</span>
 NAME                                READY   STATUS    RESTARTS   AGE
 <span class="highlight-success">mi-app-deployment-bbd479cc4-ghwh4</span>   1/1     <span class="highlight-success">Running</span>   0          4s   <span class="comment"># &lt;-- Nuevo pod auto-creado</span>
 mi-app-deployment-bbd479cc4-m24nf   1/1     Running   0          103s
 mi-app-deployment-bbd479cc4-xqp7l   1/1     Running   0          103s</div>
   </div>
 
-  <h2><span class="badge-num">7</span> Evidencia 6 (Reto): Escalabilidad Elástica Dinámica</h2>
-  <p>Escalado horizontal a 5 réplicas y reajuste ordenado al estado base de 3 réplicas sin tiempo de inactividad.</p>
+  <h2><span class="badge-num">7</span> Evidencia 6 (Reto 2): Escalabilidad Elástica Dinámica</h2>
+  <p>Escalado horizontal dinámico a 5 réplicas y reajuste ordenado al estado base de 3 réplicas sin tiempo de inactividad.</p>
 
-  <div class="terminal">
-    <div class="terminal-header">
-      <div class="terminal-buttons"><span class="btn btn-red"></span><span class="btn btn-yellow"></span><span class="btn btn-green"></span></div>
-      <div class="terminal-title">root@localhost:~ (SSH 192.168.71.128) - scale-test</div>
+  <!-- WINDOWS TERMINAL REPLICA 6 -->
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab">
+          <div class="win-tab-icon">&gt;_</div>
+          <span>Windows PowerShell</span>
+          <span class="win-tab-close">&times;</span>
+        </div>
+        <span class="win-tab-add">+</span>
+        <span class="win-tab-arrow">&#9662;</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn win-btn-minimize">
+          <svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg>
+        </div>
+        <div class="win-btn win-btn-maximize">
+          <svg viewBox="0 0 10 10"><rect x="1" width="8" height="8"></rect></svg>
+        </div>
+        <div class="win-btn win-btn-close">
+          <svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg>
+        </div>
+      </div>
     </div>
-    <div class="terminal-body"><span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl scale deployment mi-app-deployment --replicas=5 -n mi-app</span>
+    <div class="win-terminal-body"><span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl scale deployment mi-app-deployment --replicas=5 -n mi-app</span>
 deployment.apps/mi-app-deployment scaled
 
-<span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n mi-app -o wide</span>
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n mi-app -o wide</span>
 NAME                                READY   STATUS    RESTARTS   AGE   IP           NODE
 mi-app-deployment-bbd479cc4-7kd8n   1/1     <span class="highlight-success">Running</span>   0          11s   10.244.0.9   localhost.localdomain
 mi-app-deployment-bbd479cc4-ghwh4   1/1     <span class="highlight-success">Running</span>   0          15s   10.244.0.7   localhost.localdomain
@@ -421,14 +582,14 @@ mi-app-deployment-bbd479cc4-lpkgg   1/1     <span class="highlight-success">Runn
 mi-app-deployment-bbd479cc4-m24nf   1/1     <span class="highlight-success">Running</span>   0          114s  10.244.0.4   localhost.localdomain
 mi-app-deployment-bbd479cc4-xqp7l   1/1     <span class="highlight-success">Running</span>   0          114s  10.244.0.6   localhost.localdomain
 
-<span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl scale deployment mi-app-deployment --replicas=3 -n mi-app</span>
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl scale deployment mi-app-deployment --replicas=3 -n mi-app</span>
 deployment.apps/mi-app-deployment scaled</div>
   </div>
 
   <h2><span class="badge-num">8</span> Conclusiones Técnicas</h2>
-  <p>1. <strong>Operación Declarativa:</strong> Se demostró que toda la arquitectura distribuida es reproducible en un solo paso mediante <code>kubectl apply -f</code>.<br>
-  2. <strong>Desacoplamiento:</strong> Los parámetros y secretos operan independientemente de la imagen base de contenedor, permitiendo reconfiguración sin reconstrucción de imágenes.<br>
-  3. <strong>Resiliencia Comprobada:</strong> Los mecanismos nativos de Kubernetes garantizan la disponibilidad y escalabilidad automática del servicio.</p>
+  <p>1. <strong>Operación Declarativa:</strong> Toda la arquitectura distribuida se despliega y audita mediante un único manifiesto YAML reproducible.<br>
+  2. <strong>Desacoplamiento:</strong> Los parámetros y secretos operan independientemente de la imagen base de contenedor respetando los estándares de <em>12-Factor App</em>.<br>
+  3. <strong>Resiliencia Comprobada:</strong> Los controladores nativos de Kubernetes garantizan la disponibilidad ante fallos y absorción de tráfico elástica.</p>
 
 </body>
 </html>
