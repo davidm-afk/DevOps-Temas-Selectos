@@ -46,3 +46,4 @@ echo "=== 9. REVERSION DE ESCALA A 3 REPLICAS ==="
 kubectl scale deployment mi-app-deployment --replicas=3 -n mi-app
 kubectl rollout status deployment/mi-app-deployment -n mi-app --timeout=60s
 kubectl get pods -n mi-app -o wide
+

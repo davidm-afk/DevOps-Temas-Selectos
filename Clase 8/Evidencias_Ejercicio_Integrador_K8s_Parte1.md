@@ -312,3 +312,4 @@ deployment.apps/mi-app-deployment scaled
 1. **Integración Completa:** Se demostró la convergencia de todos los componentes de cómputo, red, almacenamiento lógico y seguridad en Kubernetes bajo un único manifiesto declarativo.
 2. **Desacoplamiento Efectivo:** Ni la configuración (`APP_ENV`) ni los secretos (`API_KEY`) ni la interfaz gráfica fueron incrustados dentro de la imagen base de Nginx, respetando los estándares de *12-Factor App*.
 3. **Resiliencia Operativa:** Las pruebas de estrés y eliminación forzada confirmaron la capacidad nativa de self-healing y escalado horizontal de Kubernetes.
+
