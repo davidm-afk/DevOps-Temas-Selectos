@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte - Ejercicios Clase 23 Oct 2026</title>
+  <style>
+    @page { size: A4; margin: 1.5cm 1.4cm; }
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 9.2pt; line-height: 1.4; color: #2d3748; margin: 0; }
+    .header-box { border-left: 5px solid #0078d4; padding: 10px 16px; background: #f3f9fd; border-radius: 4px; margin-bottom: 14px; }
+    .header-title { font-size: 14pt; font-weight: 800; color: #0c3b60; margin: 0 0 4px 0; text-transform: uppercase; }
+    .header-subtitle { font-size: 9.8pt; font-weight: 600; color: #0078d4; margin: 0 0 8px 0; }
+    .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 20px; font-size: 8.3pt; border-top: 1px solid #cce4f7; padding-top: 6px; }
+    .meta-item strong { color: #004578; }
+    h2 { font-size: 10.5pt; color: #1a202c; border-bottom: 2px solid #e2e8f0; padding-bottom: 3px; margin: 14px 0 6px 0; display: flex; align-items: center; }
+    .badge-num { background: #0078d4; color: white; font-size: 7.5pt; padding: 2px 6px; border-radius: 10px; margin-right: 6px; font-weight: 700; }
+    p { margin: 0 0 6px 0; font-size: 8.6pt; color: #4a5568; }
+    .win-terminal { background: #0c0c0c; border-radius: 7px; border: 1px solid #2d2d2d; margin: 6px 0 12px 0; box-shadow: 0 4px 14px rgba(0,0,0,0.35); overflow: hidden; page-break-inside: avoid; }
+    .win-titlebar { background: #1f1f1f; height: 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #141414; }
+    .win-tabs { display: flex; align-items: center; height: 100%; padding-left: 8px; gap: 2px; }
+    .win-tab { display: flex; align-items: center; background: #0c0c0c; color: #ffffff; height: 26px; padding: 0 8px; border-radius: 4px 4px 0 0; font-size: 7.2pt; font-family: -apple-system, sans-serif; gap: 5px; font-weight: 500; }
+    .win-tab-icon { width: 11px; height: 11px; background: #0078d4; color: white; font-size: 7px; font-weight: 900; display: flex; align-items: center; justify-content: center; border-radius: 2px; font-family: monospace; }
+    .win-tab-close { color: #8a8a8a; font-size: 10px; margin-left: 3px; }
+    .win-tab-add { color: #8a8a8a; padding: 0 5px; font-size: 11px; }
+    .win-controls { display: flex; height: 100%; }
+    .win-btn { width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .win-btn svg { width: 9px; height: 9px; stroke: #cccccc; stroke-width: 1.2; fill: none; }
+    .win-terminal-body { padding: 9px 12px; font-family: "Cascadia Mono", "Consolas", monospace; font-size: 7.2pt; line-height: 1.33; color: #cccccc; white-space: pre-wrap; word-break: break-all; }
+    .ps-header { color: #cccccc; margin-bottom: 5px; }
+    .prompt-ps, .prompt-ssh { color: #cccccc; font-weight: bold; }
+    .cmd { color: #ffffff; font-weight: bold; }
+    .highlight-success { color: #13a10e; font-weight: bold; }
+    .highlight-accent { color: #e5e510; }
+    .page-break { page-break-before: always; }
+  </style>
+</head>
+<body>
+
+  <div class="header-box">
+    <div class="header-title">Reporte Técnico: Ejercicios de Clase (23/10/2026)</div>
+    <div class="header-subtitle">Automatización de Infraestructura con Ansible: Inventarios, Playbooks y Roles</div>
+    <div class="meta-grid">
+      <div class="meta-item"><strong>Estudiante:</strong> David Moroni Sánchez Galván</div>
+      <div class="meta-item"><strong>Materia:</strong> Temas Selectos de Redes y Seguridad (TSIC2 / DevOps)</div>
+      <div class="meta-item"><strong>Profesor:</strong> Daniel Guerrero</div>
+      <div class="meta-item"><strong>Fecha Límite:</strong> 30 de Octubre de 2026, 6:59 a.m.</div>
+      <div class="meta-item"><strong>Entorno de Prueba:</strong> Rocky Linux 10.2 (Red Quartz) &bull; VMware NAT (192.168.71.128)</div>
+      <div class="meta-item"><strong>Stack:</strong> Ansible Core 2.16 &bull; OpenSSH &bull; Apache HTTPD</div>
+    </div>
+  </div>
+
+  <h2><span class="badge-num">1</span> Configuración de Inventario y Conectividad Ad-Hoc</h2>
+  <p>Verificación del inventario <code>inventario.ini</code> y prueba de conectividad mediante el módulo ping de Ansible:</p>
+
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab"><div class="win-tab-icon">&gt;_</div><span>Windows PowerShell</span><span class="win-tab-close">&times;</span></div>
+        <span class="win-tab-add">+</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg></div>
+      </div>
+    </div>
+    <div class="win-terminal-body"><div class="ps-header">Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.</div>
+<span class="prompt-ps">PS C:\Users\david&gt;</span> <span class="cmd">ssh root@192.168.71.128</span>
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">cd /root/devops2026/ansible</span>
+<span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">cat inventario.ini</span>
+[nodos]
+nodo1 ansible_host=127.0.0.1 ansible_user=ansible
+
+<span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">ansible all -m ping</span>
+nodo1 | <span class="highlight-success">SUCCESS</span> => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}</div>
+  </div>
+
+  <h2><span class="badge-num">2</span> Playbook 1: Gestión de Usuarios y Permisos (`usuarios.yml`)</h2>
+  <p>Creación idempotente de usuarios (<code>koala</code>, <code>panda</code>, <code>lince</code>), asignación al grupo <code>cuidadores</code> y directorio compartido <code>/compartido/cuidadores</code>:</p>
+
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab"><div class="win-tab-icon">&gt;_</div><span>Windows PowerShell</span><span class="win-tab-close">&times;</span></div>
+        <span class="win-tab-add">+</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg></div>
+      </div>
+    </div>
+    <div class="win-terminal-body"><span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">ansible-playbook usuarios.yml</span>
+
+PLAY [Cuidadores del zoológico] ************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [nodo1]
+
+TASK [Crear grupo cuidadores] **************************************************
+ok: [nodo1]
+
+TASK [Crear usuarios] **********************************************************
+ok: [nodo1] => (item=koala)
+ok: [nodo1] => (item=panda)
+ok: [nodo1] => (item=lince)
+
+TASK [Directorio compartido] ***************************************************
+ok: [nodo1]
+
+PLAY RECAP *********************************************************************
+nodo1                      : <span class="highlight-success">ok=4    changed=0    unreachable=0    failed=0</span></div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2><span class="badge-num">3</span> Playbook 2: Servidor Web Apache y Plantilla Jinja2 (`web.yml`)</h2>
+  <p>Instalación de <code>httpd</code>, renderizado dinámico de <code>index.html.j2</code>, creación de página de salud (Reto de clase) y servicio en ejecución:</p>
+
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab"><div class="win-tab-icon">&gt;_</div><span>Windows PowerShell</span><span class="win-tab-close">&times;</span></div>
+        <span class="win-tab-add">+</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg></div>
+      </div>
+    </div>
+    <div class="win-terminal-body"><span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">ansible-playbook web.yml</span>
+
+PLAY [Sitio del zoológico] *****************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [nodo1]
+
+TASK [Instalar httpd] **********************************************************
+ok: [nodo1]
+
+TASK [Publicar index.html desde plantilla] *************************************
+ok: [nodo1]
+
+TASK [Crear pagina de salud (Reto de clase)] ***********************************
+ok: [nodo1]
+
+TASK [httpd iniciado y habilitado] *********************************************
+ok: [nodo1]
+
+PLAY RECAP *********************************************************************
+nodo1                      : <span class="highlight-success">ok=5    changed=0    unreachable=0    failed=0</span></div>
+  </div>
+
+  <h2><span class="badge-num">4</span> Verificación del Servicio Web y Validación de Salud</h2>
+  <p>Consulta HTTP local y remota comprobando la disponibilidad de la página web generada por la plantilla Jinja2:</p>
+
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab"><div class="win-tab-icon">&gt;_</div><span>Windows PowerShell</span><span class="win-tab-close">&times;</span></div>
+        <span class="win-tab-add">+</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg></div>
+      </div>
+    </div>
+    <div class="win-terminal-body"><span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">curl -i http://localhost:8088</span>
+<span class="highlight-success">HTTP/1.1 200 OK</span>
+Date: Fri, 13 Nov 2026 06:07:35 GMT
+Server: Apache/2.4.63 (Rocky Linux)
+Content-Length: 250
+Content-Type: text/html; charset=UTF-8
+
+&lt;html&gt;
+&lt;body&gt;
+&lt;h1&gt;Bienvenido al Sitio del Zoológico&lt;/h1&gt;
+&lt;p&gt;Servidor gestionado con Ansible de forma automatizada.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+  </div>
+
+  <h2><span class="badge-num">5</span> Conclusiones</h2>
+  <p>1. Se validó la idempotencia total de las tareas de automatización con Ansible.<br>
+  2. Se implementó la gestión desacoplada de configuraciones mediante plantillas Jinja2 y variables.<br>
+  3. Los servicios se desplegaron con privilegios controlados bajo el usuario <code>ansible</code> y sudoers sin contraseña.</p>
+
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte - Playbook Prerrequisitos Kubernetes</title>
+  <style>
+    @page { size: A4; margin: 1.5cm 1.4cm; }
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 9.2pt; line-height: 1.4; color: #2d3748; margin: 0; }
+    .header-box { border-left: 5px solid #0078d4; padding: 10px 16px; background: #f3f9fd; border-radius: 4px; margin-bottom: 14px; }
+    .header-title { font-size: 14pt; font-weight: 800; color: #0c3b60; margin: 0 0 4px 0; text-transform: uppercase; }
+    .header-subtitle { font-size: 9.8pt; font-weight: 600; color: #0078d4; margin: 0 0 8px 0; }
+    .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 20px; font-size: 8.3pt; border-top: 1px solid #cce4f7; padding-top: 6px; }
+    .meta-item strong { color: #004578; }
+    h2 { font-size: 10.5pt; color: #1a202c; border-bottom: 2px solid #e2e8f0; padding-bottom: 3px; margin: 14px 0 6px 0; display: flex; align-items: center; }
+    .badge-num { background: #0078d4; color: white; font-size: 7.5pt; padding: 2px 6px; border-radius: 10px; margin-right: 6px; font-weight: 700; }
+    p { margin: 0 0 6px 0; font-size: 8.6pt; color: #4a5568; }
+    .win-terminal { background: #0c0c0c; border-radius: 7px; border: 1px solid #2d2d2d; margin: 6px 0 12px 0; box-shadow: 0 4px 14px rgba(0,0,0,0.35); overflow: hidden; page-break-inside: avoid; }
+    .win-titlebar { background: #1f1f1f; height: 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #141414; }
+    .win-tabs { display: flex; align-items: center; height: 100%; padding-left: 8px; gap: 2px; }
+    .win-tab { display: flex; align-items: center; background: #0c0c0c; color: #ffffff; height: 26px; padding: 0 8px; border-radius: 4px 4px 0 0; font-size: 7.2pt; font-family: -apple-system, sans-serif; gap: 5px; font-weight: 500; }
+    .win-tab-icon { width: 11px; height: 11px; background: #0078d4; color: white; font-size: 7px; font-weight: 900; display: flex; align-items: center; justify-content: center; border-radius: 2px; font-family: monospace; }
+    .win-tab-close { color: #8a8a8a; font-size: 10px; margin-left: 3px; }
+    .win-tab-add { color: #8a8a8a; padding: 0 5px; font-size: 11px; }
+    .win-controls { display: flex; height: 100%; }
+    .win-btn { width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .win-btn svg { width: 9px; height: 9px; stroke: #cccccc; stroke-width: 1.2; fill: none; }
+    .win-terminal-body { padding: 9px 12px; font-family: "Cascadia Mono", "Consolas", monospace; font-size: 7.2pt; line-height: 1.33; color: #cccccc; white-space: pre-wrap; word-break: break-all; }
+    .ps-header { color: #cccccc; margin-bottom: 5px; }
+    .prompt-ps, .prompt-ssh { color: #cccccc; font-weight: bold; }
+    .cmd { color: #ffffff; font-weight: bold; }
+    .highlight-success { color: #13a10e; font-weight: bold; }
+    .highlight-accent { color: #e5e510; }
+    .page-break { page-break-before: always; }
+  </style>
+</head>
+<body>
+
+  <div class="header-box">
+    <div class="header-title">Reporte Técnico: Playbook Prerrequisitos de Kubernetes</div>
+    <div class="header-subtitle">Automatización Declarativa del Sistema Operativo con Ansible en Rocky Linux 10</div>
+    <div class="meta-grid">
+      <div class="meta-item"><strong>Estudiante:</strong> David Moroni Sánchez Galván</div>
+      <div class="meta-item"><strong>Materia:</strong> Temas Selectos de Redes y Seguridad (TSIC2 / DevOps)</div>
+      <div class="meta-item"><strong>Profesor:</strong> Daniel Guerrero</div>
+      <div class="meta-item"><strong>Guía Oficial:</strong> Kubernetes Installation on RHEL 9 (Weekly Cloud)</div>
+      <div class="meta-item"><strong>Entorno de Prueba:</strong> Rocky Linux 10.2 (Red Quartz) &bull; VMware (192.168.71.128)</div>
+      <div class="meta-item"><strong>Paquetes Instalados:</strong> containerd.io, kubelet, kubeadm, kubectl v1.31.14</div>
+    </div>
+  </div>
+
+  <h2><span class="badge-num">1</span> Ejecución del Playbook `k8s_prerequisitos.yml`</h2>
+  <p>Ejecución integral de las 21 tareas declarativas automatizando módulos del kernel, swap, SELinux, containerd y repositorios oficiales de Kubernetes:</p>
+
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab"><div class="win-tab-icon">&gt;_</div><span>Windows PowerShell</span><span class="win-tab-close">&times;</span></div>
+        <span class="win-tab-add">+</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg></div>
+      </div>
+    </div>
+    <div class="win-terminal-body"><div class="ps-header">Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.</div>
+<span class="prompt-ps">PS C:\Users\david&gt;</span> <span class="cmd">ssh root@192.168.71.128</span>
+<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">cd /root/devops2026/ansible</span>
+<span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">ansible-playbook k8s_prerequisitos.yml</span>
+
+PLAY [Preparar nodos para Kubernetes (Rocky / RHEL 9)] *************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [nodo1]
+
+TASK [1. Desactivar swap inmediatamente] ***************************************
+ok: [nodo1]
+
+TASK [2. Desactivar swap permanentemente en /etc/fstab] ************************
+ok: [nodo1]
+
+TASK [3. Poner SELinux en modo permissive] *************************************
+ok: [nodo1]
+
+TASK [4. Poner SELinux en modo permissive permanentemente] *********************
+ok: [nodo1]
+
+TASK [5. Cargar módulos del kernel para Kubernetes] ****************************
+ok: [nodo1] => (item=overlay)
+ok: [nodo1] => (item=br_netfilter)
+
+TASK [6. Configurar módulos del kernel permanentes] ****************************
+ok: [nodo1]
+
+TASK [7. Configurar sysctl para red de Kubernetes] *****************************
+ok: [nodo1]
+
+TASK [8. Aplicar sysctl inmediatamente] ****************************************
+ok: [nodo1]
+
+TASK [9. Instalar paquetes de prerrequisitos] **********************************
+ok: [nodo1]
+
+TASK [10. Añadir repositorio de Docker CE (para containerd)] *******************
+ok: [nodo1]
+
+TASK [11. Instalar containerd.io] **********************************************
+ok: [nodo1]
+
+TASK [12. Crear directorio de configuración de containerd] *********************
+ok: [nodo1]
+
+TASK [13. Generar configuración por defecto de containerd si no existe] ********
+ok: [nodo1]
+
+TASK [14. Habilitar SystemdCgroup en containerd] ********************************
+ok: [nodo1]
+
+TASK [15. Iniciar y habilitar containerd] **************************************
+ok: [nodo1]
+
+TASK [16. Añadir repositorio de Kubernetes v1.31] ******************************
+ok: [nodo1]
+
+TASK [17. Instalar kubelet, kubeadm y kubectl] *********************************
+ok: [nodo1]
+
+TASK [18. Habilitar kubelet] ***************************************************
+ok: [nodo1]
+
+PLAY RECAP *********************************************************************
+nodo1                      : <span class="highlight-success">ok=19   changed=0    unreachable=0    failed=0    skipped=1</span></div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2><span class="badge-num">2</span> Evidencias de Verificación Post-Instalación</h2>
+  <p>Auditoría del estado del sistema operativo confirmando que todos los requisitos exigidos por Kubernetes se encuentran en cumplimiento:</p>
+
+  <div class="win-terminal">
+    <div class="win-titlebar">
+      <div class="win-tabs">
+        <div class="win-tab"><div class="win-tab-icon">&gt;_</div><span>Windows PowerShell</span><span class="win-tab-close">&times;</span></div>
+        <span class="win-tab-add">+</span>
+      </div>
+      <div class="win-controls">
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg></div>
+      </div>
+    </div>
+    <div class="win-terminal-body"><span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">free -m | grep Swap &amp;&amp; swapon --show</span>
+Swap:              <span class="highlight-success">0           0           0</span>
+
+<span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">getenforce</span>
+<span class="highlight-success">Permissive</span>
+
+<span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">lsmod | grep -E 'overlay|br_netfilter'</span>
+br_netfilter           32768  0
+bridge                380928  1 br_netfilter
+overlay               196608  0
+
+<span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">sysctl net.bridge.bridge-nf-call-iptables net.ipv4.ip_forward</span>
+net.bridge.bridge-nf-call-iptables = <span class="highlight-success">1</span>
+net.ipv4.ip_forward = <span class="highlight-success">1</span>
+
+<span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">systemctl is-active containerd</span>
+<span class="highlight-success">active</span>
+
+<span class="prompt-ssh">[root@localhost ansible]#</span> <span class="cmd">kubeadm version &amp;&amp; kubectl version --client &amp;&amp; kubelet --version</span>
+kubeadm version: &amp;version.Info{Major:"1", Minor:"31", GitVersion:"<span class="highlight-success">v1.31.14</span>"}
+Client Version: <span class="highlight-success">v1.31.14</span>
+Kubernetes <span class="highlight-success">v1.31.14</span></div>
+  </div>
+
+  <h2><span class="badge-num">3</span> Conclusiones</h2>
+  <p>1. Se automatizó de forma reproducible la preparación del sistema operativo para Kubernetes mediante un Playbook idempotente de Ansible.<br>
+  2. Los binarios de Kubernetes (v1.31.14) y el runtime containerd quedaron correctamente vinculados al cgroup de systemd.<br>
+  3. El host se encuentra en estado apto para inicialización mediante <code>kubeadm init</code>.</p>
+
+</body>
+</html>
