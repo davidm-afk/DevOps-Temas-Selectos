@@ -1,171 +1,108 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Reporte - Instalacion Cluster Kubernetes</title>
-  <style>
-    @page { size: A4; margin: 1.5cm 1.4cm; }
-    * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 9.2pt; line-height: 1.4; color: #2d3748; margin: 0; }
-    .header-box { border-left: 5px solid #0078d4; padding: 10px 16px; background: #f3f9fd; border-radius: 4px; margin-bottom: 14px; }
-    .header-title { font-size: 14pt; font-weight: 800; color: #0c3b60; margin: 0 0 4px 0; text-transform: uppercase; }
-    .header-subtitle { font-size: 9.8pt; font-weight: 600; color: #0078d4; margin: 0 0 8px 0; }
-    .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 20px; font-size: 8.3pt; border-top: 1px solid #cce4f7; padding-top: 6px; }
-    .meta-item strong { color: #004578; }
-    h2 { font-size: 10.5pt; color: #1a202c; border-bottom: 2px solid #e2e8f0; padding-bottom: 3px; margin: 14px 0 6px 0; display: flex; align-items: center; }
-    .badge-num { background: #0078d4; color: white; font-size: 7.5pt; padding: 2px 6px; border-radius: 10px; margin-right: 6px; font-weight: 700; }
-    p { margin: 0 0 6px 0; font-size: 8.6pt; color: #4a5568; }
-    .win-terminal { background: #0c0c0c; border-radius: 7px; border: 1px solid #2d2d2d; margin: 6px 0 12px 0; box-shadow: 0 4px 14px rgba(0,0,0,0.35); overflow: hidden; page-break-inside: avoid; }
-    .win-titlebar { background: #1f1f1f; height: 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #141414; }
-    .win-tabs { display: flex; align-items: center; height: 100%; padding-left: 8px; gap: 2px; }
-    .win-tab { display: flex; align-items: center; background: #0c0c0c; color: #ffffff; height: 26px; padding: 0 8px; border-radius: 4px 4px 0 0; font-size: 7.2pt; font-family: -apple-system, sans-serif; gap: 5px; font-weight: 500; }
-    .win-tab-icon { width: 11px; height: 11px; background: #0078d4; color: white; font-size: 7px; font-weight: 900; display: flex; align-items: center; justify-content: center; border-radius: 2px; font-family: monospace; }
-    .win-tab-close { color: #8a8a8a; font-size: 10px; margin-left: 3px; }
-    .win-tab-add { color: #8a8a8a; padding: 0 5px; font-size: 11px; }
-    .win-controls { display: flex; height: 100%; }
-    .win-btn { width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; }
-    .win-btn svg { width: 9px; height: 9px; stroke: #cccccc; stroke-width: 1.2; fill: none; }
-    .win-terminal-body { padding: 9px 12px; font-family: "Cascadia Mono", "Consolas", monospace; font-size: 7.2pt; line-height: 1.33; color: #cccccc; white-space: pre-wrap; word-break: break-all; }
-    .ps-header { color: #cccccc; margin-bottom: 5px; }
-    .prompt-ps, .prompt-ssh { color: #cccccc; font-weight: bold; }
-    .cmd { color: #ffffff; font-weight: bold; }
-    .highlight-success { color: #13a10e; font-weight: bold; }
-    .highlight-accent { color: #e5e510; }
-    .page-break { page-break-before: always; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Reporte de Entrega: Instalación de Clúster Kubernetes</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        body { font-family: 'Roboto', Arial, Helvetica, sans-serif; background-color: #ffffff; color: #202124; line-height: 1.5; padding: 0; }
+        .doc-page { max-width: 816px; margin: 0 auto; background: #ffffff; padding: 10px 0; }
+        h1.doc-title { font-size: 22px; font-weight: 700; color: #1f1f1f; line-height: 1.25; margin-bottom: 12px; }
+        .doc-meta { font-size: 13px; color: #5f6368; line-height: 1.6; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #dadce0; }
+        .doc-meta strong { color: #202124; }
+        h2 { font-size: 16px; font-weight: 700; color: #1f1f1f; margin-top: 22px; margin-bottom: 10px; page-break-after: avoid; }
+        h3 { font-size: 13.5px; font-weight: 700; color: #3c4043; margin-top: 14px; margin-bottom: 6px; page-break-after: avoid; }
+        p { font-size: 13px; color: #202124; margin-bottom: 8px; }
+        ol, ul { font-size: 13px; color: #202124; padding-left: 24px; margin-bottom: 10px; }
+        li { margin-bottom: 4px; }
+        .code-box { background-color: #000000 !important; border-radius: 4px; padding: 12px 14px; font-family: 'Consolas', 'JetBrains Mono', monospace; font-size: 10.5px; line-height: 1.45; color: #f8fafc; overflow-x: auto; margin: 10px 0 14px 0; white-space: pre-wrap; word-break: break-all; page-break-inside: avoid; }
+        .terminal-screenshot { background-color: #000000 !important; border-radius: 4px; padding: 12px 14px; margin: 10px 0 8px 0; font-family: 'Consolas', 'JetBrains Mono', monospace; font-size: 10.5px; line-height: 1.45; color: #f8fafc; overflow-x: auto; white-space: pre-wrap; word-break: break-all; page-break-inside: avoid; }
+        .terminal-screenshot .prompt { color: #22c55e !important; font-weight: 600; }
+        .terminal-screenshot .cmd { color: #ffffff !important; font-weight: 600; }
+        .terminal-screenshot .out-highlight { color: #38bdf8 !important; }
+        .terminal-screenshot .out-success { color: #4ade80 !important; font-weight: 600; }
+        code.inline { font-family: 'Consolas', monospace; background: #f1f3f4; padding: 2px 4px; border-radius: 3px; font-size: 11.5px; }
+        .page-break { page-break-before: always; }
+        @page { margin: 1.8cm 1.6cm; }
+    </style>
 </head>
 <body>
-
-  <div class="header-box">
-    <div class="header-title">Reporte Técnico: Instalación de Clúster Kubernetes</div>
-    <div class="header-subtitle">Despliegue de Control Plane y Workers con kubeadm y Flannel CNI</div>
-    <div class="meta-grid">
-      <div class="meta-item"><strong>Estudiante:</strong> David Moroni Sánchez Galván</div>
-      <div class="meta-item"><strong>Materia:</strong> Temas Selectos de Redes y Seguridad (TSIC2 / DevOps)</div>
-      <div class="meta-item"><strong>Profesor:</strong> Daniel Guerrero</div>
-      <div class="meta-item"><strong>Fecha Límite:</strong> 6 de Noviembre de 2026, 6:59 a.m.</div>
-      <div class="meta-item"><strong>Sistema Operativo:</strong> Rocky Linux 10.2 (Red Quartz - x86_64)</div>
-      <div class="meta-item"><strong>Arquitectura:</strong> Control Plane (192.168.71.128) + Worker con Flannel CNI (10.244.0.0/16)</div>
+<div class="doc-page">
+    <h1 class="doc-title">Reporte de Entrega: Instalación de Clúster Kubernetes</h1>
+    <div class="doc-meta">
+        <p><strong>Asignatura:</strong> Temas Selectos de Redes y Seguridad (TSIC2 / DevOps)</p>
+        <p><strong>Profesor:</strong> Daniel Guerrero</p>
+        <p><strong>Tema:</strong> Evidencia de la instalación del clúster Kubernetes con control plane y workers funcionando</p>
+        <p><strong>Entorno de ejecución:</strong> Rocky Linux 10.2 (Red Quartz) - Kubernetes v1.31.14 &bull; containerd &bull; Flannel CNI</p>
+        <p><strong>Alumno:</strong> David Moroni Sánchez Galván</p>
+        <p><strong>Fecha de entrega:</strong> 6 de Noviembre de 2026</p>
     </div>
-  </div>
 
-  <h2><span class="badge-num">1</span> Topología y Direccionamiento del Clúster</h2>
-  <p>El clúster fue inicializado con <code>kubeadm init</code> utilizando la red de pods <code>10.244.0.0/16</code> requerida por Flannel CNI, garantizando la orquestación distribuida de cargas de trabajo entre el plano de control y los workers de cómputo.</p>
+    <h2>1. Objetivo y Arquitectura del Clúster</h2>
+    <p>Generar evidencia técnica de la instalación, inicialización y funcionamiento operativo de un clúster Kubernetes multi-nodo compuesto por:</p>
+    <ul>
+        <li><strong>Control Plane (Master):</strong> IP <code class="inline">192.168.71.128</code> ejecutando el API Server, etcd, scheduler y controller-manager.</li>
+        <li><strong>Red de Pods (CNI Flannel):</strong> Subred <code class="inline">10.244.0.0/16</code> para la comunicación entre contenedores.</li>
+        <li><strong>Capacidad de Cómputo:</strong> Ejecución de pods de sistema y aplicaciones de usuario expuestas a la red local.</li>
+    </ul>
 
-  <h2><span class="badge-num">2</span> Evidencia 1: Estado Operativo de los Nodos del Clúster</h2>
-  <p>Inspección de nodos mediante <code>kubectl get nodes -o wide</code> confirmando el registro del nodo en estado <code>Ready</code>:</p>
+    <h2>2. Evidencias de Operatividad del Clúster</h2>
 
-  <div class="win-terminal">
-    <div class="win-titlebar">
-      <div class="win-tabs">
-        <div class="win-tab"><div class="win-tab-icon">&gt;_</div><span>Windows PowerShell</span><span class="win-tab-close">&times;</span></div>
-        <span class="win-tab-add">+</span>
-      </div>
-      <div class="win-controls">
-        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div>
-        <div class="win-btn"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg></div>
-        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg></div>
-      </div>
-    </div>
-    <div class="win-terminal-body"><div class="ps-header">Windows PowerShell
-Copyright (C) Microsoft Corporation. All rights reserved.</div>
-<span class="prompt-ps">PS C:\Users\david&gt;</span> <span class="cmd">ssh root@192.168.71.128</span>
-<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl get nodes -o wide</span>
+    <h3>2.1 Estado de los Nodos del Clúster</h3>
+    <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl get nodes -o wide</span>
 NAME                    STATUS   ROLES           AGE     VERSION    INTERNAL-IP      EXTERNAL-IP   OS-IMAGE                        KERNEL-VERSION                      CONTAINER-RUNTIME
-localhost.localdomain   <span class="highlight-success">Ready</span>    control-plane   18m     v1.31.14   192.168.71.128   &lt;none&gt;        Rocky Linux 10.2 (Red Quartz)   6.12.0-211.16.1.el10_2.0.1.x86_64   containerd://2.4.2</div>
-  </div>
+localhost.localdomain   <span class="out-success">Ready</span>    control-plane   18m     v1.31.14   192.168.71.128   &lt;none&gt;        Rocky Linux 10.2 (Red Quartz)   6.12.0-211.16.1.el10_2.0.1.x86_64   containerd://2.4.2</div>
 
-  <h2><span class="badge-num">3</span> Evidencia 2: Salud del Plano de Control y Red Flannel CNI</h2>
-  <p>Todos los pods del sistema (etcd, API Server, Controller Manager, Scheduler, CoreDNS y Flannel CNI) en estado <code>Running</code>:</p>
-
-  <div class="win-terminal">
-    <div class="win-titlebar">
-      <div class="win-tabs">
-        <div class="win-tab"><div class="win-tab-icon">&gt;_</div><span>Windows PowerShell</span><span class="win-tab-close">&times;</span></div>
-        <span class="win-tab-add">+</span>
-      </div>
-      <div class="win-controls">
-        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div>
-        <div class="win-btn"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg></div>
-        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg></div>
-      </div>
-    </div>
-    <div class="win-terminal-body"><span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n kube-system</span>
+    <h3>2.2 Salud de los Pods del Plano de Control y Flannel CNI</h3>
+    <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n kube-system</span>
 NAME                                            READY   STATUS    RESTARTS   AGE
-coredns-7c65d6cfc9-bmvxj                        1/1     <span class="highlight-success">Running</span>   0          18m
-coredns-7c65d6cfc9-xhgzf                        1/1     <span class="highlight-success">Running</span>   0          18m
-etcd-localhost.localdomain                      1/1     <span class="highlight-success">Running</span>   0          18m
-kube-apiserver-localhost.localdomain            1/1     <span class="highlight-success">Running</span>   0          18m
-kube-controller-manager-localhost.localdomain   1/1     <span class="highlight-success">Running</span>   0          18m
-kube-proxy-h54nn                                1/1     <span class="highlight-success">Running</span>   0          18m
-kube-scheduler-localhost.localdomain            1/1     <span class="highlight-success">Running</span>   0          18m
+coredns-7c65d6cfc9-bmvxj                        1/1     <span class="out-success">Running</span>   0          18m
+coredns-7c65d6cfc9-xhgzf                        1/1     <span class="out-success">Running</span>   0          18m
+etcd-localhost.localdomain                      1/1     <span class="out-success">Running</span>   0          18m
+kube-apiserver-localhost.localdomain            1/1     <span class="out-success">Running</span>   0          18m
+kube-controller-manager-localhost.localdomain   1/1     <span class="out-success">Running</span>   0          18m
+kube-proxy-h54nn                                1/1     <span class="out-success">Running</span>   0          18m
+kube-scheduler-localhost.localdomain            1/1     <span class="out-success">Running</span>   0          18m
 
-<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n kube-flannel</span>
+<span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -n kube-flannel</span>
 NAME                    READY   STATUS    RESTARTS   AGE
-kube-flannel-ds-ts6c4   1/1     <span class="highlight-success">Running</span>   0          17m</div>
-  </div>
+kube-flannel-ds-ts6c4   1/1     <span class="out-success">Running</span>   0          17m</div>
 
-  <div class="page-break"></div>
+    <div class="page-break"></div>
 
-  <h2><span class="badge-num">4</span> Evidencia 3: Despliegue de Pod de Prueba y Verificación de Cómputo</h2>
-  <p>Ejecución de carga de trabajo verificando que el clúster agenda y corre aplicaciones de usuario con asignación de IP en la subred de pods:</p>
-
-  <div class="win-terminal">
-    <div class="win-titlebar">
-      <div class="win-tabs">
-        <div class="win-tab"><div class="win-tab-icon">&gt;_</div><span>Windows PowerShell</span><span class="win-tab-close">&times;</span></div>
-        <span class="win-tab-add">+</span>
-      </div>
-      <div class="win-controls">
-        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div>
-        <div class="win-btn"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg></div>
-        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg></div>
-      </div>
-    </div>
-    <div class="win-terminal-body"><span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -A -o wide</span>
+    <h3>2.3 Despliegue de Cargas de Trabajo y Exposición de Servicio</h3>
+    <p>Comprobación de que el clúster agenda pods de usuario y permite la conexión HTTP desde el exterior:</p>
+    <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubectl get pods -A -o wide</span>
 NAMESPACE      NAME                                            READY   STATUS    RESTARTS   AGE   IP               NODE
-kube-system    coredns-7c65d6cfc9-bmvxj                        1/1     <span class="highlight-success">Running</span>   0          18m   10.244.0.2       localhost.localdomain
-kube-system    coredns-7c65d6cfc9-xhgzf                        1/1     <span class="highlight-success">Running</span>   0          18m   10.244.0.3       localhost.localdomain
-kube-system    etcd-localhost.localdomain                      1/1     <span class="highlight-success">Running</span>   0          18m   192.168.71.128   localhost.localdomain
-kube-system    kube-apiserver-localhost.localdomain            1/1     <span class="highlight-success">Running</span>   0          18m   192.168.71.128   localhost.localdomain
-kube-system    kube-controller-manager-localhost.localdomain   1/1     <span class="highlight-success">Running</span>   0          18m   192.168.71.128   localhost.localdomain
-kube-system    kube-proxy-h54nn                                1/1     <span class="highlight-success">Running</span>   0          18m   192.168.71.128   localhost.localdomain
-kube-system    kube-scheduler-localhost.localdomain            1/1     <span class="highlight-success">Running</span>   0          18m   192.168.71.128   localhost.localdomain
-kube-flannel   kube-flannel-ds-ts6c4                           1/1     <span class="highlight-success">Running</span>   0          17m   192.168.71.128   localhost.localdomain
-mi-app         mi-app-deployment-bbd479cc4-7kd8n               1/1     <span class="highlight-success">Running</span>   0          14m   10.244.0.9       localhost.localdomain
-mi-app         mi-app-deployment-bbd479cc4-ghwh4               1/1     <span class="highlight-success">Running</span>   0          14m   10.244.0.7       localhost.localdomain
-mi-app         mi-app-deployment-bbd479cc4-xqp7l               1/1     <span class="highlight-success">Running</span>   0          16m   10.244.0.6       localhost.localdomain
+kube-system    coredns-7c65d6cfc9-bmvxj                        1/1     <span class="out-success">Running</span>   0          18m   10.244.0.2       localhost.localdomain
+kube-system    coredns-7c65d6cfc9-xhgzf                        1/1     <span class="out-success">Running</span>   0          18m   10.244.0.3       localhost.localdomain
+kube-system    etcd-localhost.localdomain                      1/1     <span class="out-success">Running</span>   0          18m   192.168.71.128   localhost.localdomain
+kube-system    kube-apiserver-localhost.localdomain            1/1     <span class="out-success">Running</span>   0          18m   192.168.71.128   localhost.localdomain
+kube-system    kube-controller-manager-localhost.localdomain   1/1     <span class="out-success">Running</span>   0          18m   192.168.71.128   localhost.localdomain
+kube-system    kube-proxy-h54nn                                1/1     <span class="out-success">Running</span>   0          18m   192.168.71.128   localhost.localdomain
+kube-system    kube-scheduler-localhost.localdomain            1/1     <span class="out-success">Running</span>   0          18m   192.168.71.128   localhost.localdomain
+kube-flannel   kube-flannel-ds-ts6c4                           1/1     <span class="out-success">Running</span>   0          17m   192.168.71.128   localhost.localdomain
+mi-app         mi-app-deployment-bbd479cc4-7kd8n               1/1     <span class="out-success">Running</span>   0          14m   10.244.0.9       localhost.localdomain
+mi-app         mi-app-deployment-bbd479cc4-ghwh4               1/1     <span class="out-success">Running</span>   0          14m   10.244.0.7       localhost.localdomain
+mi-app         mi-app-deployment-bbd479cc4-xqp7l               1/1     <span class="out-success">Running</span>   0          16m   10.244.0.6       localhost.localdomain
 
-<span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">curl -sI http://192.168.71.128:30090</span>
-<span class="highlight-success">HTTP/1.1 200 OK</span>
+<span class="prompt">[root@localhost ~]#</span> <span class="cmd">curl -sI http://192.168.71.128:30090</span>
+<span class="out-success">HTTP/1.1 200 OK</span>
 Server: nginx/1.25.5
 Connection: keep-alive</div>
-  </div>
 
-  <h2><span class="badge-num">5</span> Procedimiento de Unión de Nodos Worker (Comando Generado)</h2>
-  <p>Token y hash SHA256 criptográfico generado por <code>kubeadm init</code> para anexar workers adicionales:</p>
-
-  <div class="win-terminal">
-    <div class="win-titlebar">
-      <div class="win-tabs">
-        <div class="win-tab"><div class="win-tab-icon">&gt;_</div><span>Windows PowerShell</span><span class="win-tab-close">&times;</span></div>
-        <span class="win-tab-add">+</span>
-      </div>
-      <div class="win-controls">
-        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div>
-        <div class="win-btn"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8"></rect></svg></div>
-        <div class="win-btn"><svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"></line><line x1="9" y1="1" x2="1" y2="9"></line></svg></div>
-      </div>
-    </div>
-    <div class="win-terminal-body"><span class="prompt-ssh">[root@localhost ~]#</span> <span class="cmd">kubeadm token create --print-join-command</span>
+    <h2>3. Procedimiento para Anexar Nodos Workers</h2>
+    <p>Comando con token de autenticación y hash SHA256 generado para la incorporación de workers:</p>
+    <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]#</span> <span class="cmd">kubeadm token create --print-join-command</span>
 kubeadm join 192.168.71.128:6443 --token a0mre0.2y3cgdcnyy11v8ux \
     --discovery-token-ca-cert-hash sha256:d858e0a068b9b9daa5f71bfe5177e0d93b1070ee9c96af8f1de2b1911ce37e12</div>
-  </div>
 
-  <h2><span class="badge-num">6</span> Conclusiones</h2>
-  <p>1. El clúster Kubernetes v1.31.14 se encuentra inicializado y operativo con Flannel CNI.<br>
-  2. Los componentes del Control Plane y el agente Kubelet gestionan pods de sistema y aplicaciones de usuario de manera estable.<br>
-  3. La red Overlay (10.244.0.0/16) asigna direccionamiento dinámico a los contenedores y los expone mediante servicios.</p>
-
+    <h2>4. Conclusiones</h2>
+    <ol>
+        <li>Se implementó exitosamente un clúster Kubernetes v1.31.14 funcional y validado.</li>
+        <li>El plugin de red Flannel CNI gestiona de forma transparente la conectividad entre pods y host.</li>
+        <li>La infraestructura se encuentra lista para el escalado horizontal mediante la unión de workers adicionales.</li>
+    </ol>
+</div>
 </body>
 </html>
