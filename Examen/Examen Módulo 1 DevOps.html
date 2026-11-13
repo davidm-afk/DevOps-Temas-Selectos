@@ -1,0 +1,645 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Examen Módulo 1 DevOps</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una columna de lectura; cada ejercicio es una "hoja" con requisitos marcables y un bloque de verificación tipo terminal. */
+:root {
+  --bg: #11161d; --surface: #182029; --code: #0b0f14; --line: #2a3542;
+  --fg: #dde4ec; --muted: #8e9bab; --accent: #e8a33d; --accent-ink: #1a1206;
+  --ok: #5cc28a; --warn: #e07a5f;
+  --f-display: "Syne", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #f3f5f7; --surface: #ffffff; --code: #1b222c; --line: #d5dce4;
+  --fg: #16202b; --muted: #576678; --accent: #a8620a; --accent-ink: #ffffff;
+  --ok: #1f8a54; --warn: #b4472c; color-scheme: light; } }
+:root[data-theme="light"] {
+  --bg: #f3f5f7; --surface: #ffffff; --code: #1b222c; --line: #d5dce4;
+  --fg: #16202b; --muted: #576678; --accent: #a8620a; --accent-ink: #ffffff;
+  --ok: #1f8a54; --warn: #b4472c; color-scheme: light; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 1rem/1.6 var(--f-body); }
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.8rem); font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; font-weight: 700; }
+h3 { font-size: 0.78rem; font-family: var(--f-mono); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+p { margin: 0; max-width: 66ch; }
+code, .mono { font-family: var(--f-mono); font-size: 0.88em; }
+:not(pre) > code { background: color-mix(in srgb, var(--accent) 12%, transparent); padding: 1px 5px; border-radius: 4px; }
+a { color: var(--accent); }
+
+.eyebrow { font-family: var(--f-mono); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+header { display: flex; flex-direction: column; gap: 14px; }
+.lede { color: var(--muted); }
+
+.alumno { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
+  border: 1px solid var(--line); background: var(--surface); padding: 16px; border-radius: 8px; }
+.alumno label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--muted); }
+.alumno input { font: 600 1rem var(--f-mono); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 9px 11px; }
+.alumno input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.alumno small { grid-column: 1 / -1; color: var(--muted); }
+
+.ruta { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; }
+.ruta a { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: var(--fg);
+  border-top: 3px solid var(--line); padding: 8px 2px 0; }
+.ruta a:hover, .ruta a:focus-visible { border-top-color: var(--accent); outline: none; }
+.ruta .n { font: 600 0.75rem var(--f-mono); color: var(--muted); }
+.ruta .t { font-weight: 600; font-size: 0.92rem; line-height: 1.25; }
+.ruta .p { font: 400 0.75rem var(--f-mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+.ruta a.done { border-top-color: var(--ok); }
+
+section.ej { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 22px; display: flex; flex-direction: column; gap: 18px; scroll-margin-top: 16px; }
+.ej-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.ej-head .num { font: 600 0.8rem var(--f-mono); color: var(--accent); letter-spacing: 0.08em; }
+.pts { font: 600 0.82rem var(--f-mono); color: var(--accent-ink); background: var(--accent); padding: 3px 10px; border-radius: 999px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.objetivo { color: var(--muted); }
+.bloque { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+
+ul.req { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+ul.req label { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; cursor: pointer; padding: 6px 8px; border-radius: 6px; }
+ul.req label:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+ul.req input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--ok); }
+ul.req input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent); }
+
+.tabla { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font: 600 0.72rem var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.mono { font-variant-numeric: tabular-nums; }
+.tabs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.tabs-grid > * { min-width: 0; }
+
+.term { position: relative; background: var(--code); border-radius: 8px; border: 1px solid color-mix(in srgb, var(--line) 60%, #000); min-width: 0; }
+.term .bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px 6px 12px; border-bottom: 1px solid #ffffff14; }
+.term .bar span { font: 400 0.72rem var(--f-mono); color: #8e9bab; letter-spacing: 0.06em; }
+.term pre { margin: 0; padding: 12px 14px; overflow-x: auto; font: 400 0.84rem/1.6 var(--f-mono); color: #d7dee7; }
+.term pre .c { color: #7f8b9a; }
+.term pre .v { color: #f0b85a; }
+.copy { font: 600 0.75rem var(--f-mono); color: #d7dee7; background: #ffffff10; border: 1px solid #ffffff22; border-radius: 5px; padding: 4px 10px; cursor: pointer; }
+.copy:hover { background: #ffffff1c; }
+.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.copy.ok { color: #0b0f14; background: #5cc28a; border-color: #5cc28a; }
+
+.nota { border-left: 3px solid var(--warn); padding: 4px 0 4px 14px; color: var(--fg); font-size: 0.95rem; }
+.nota strong { color: var(--warn); }
+
+.evidencia { border: 2px solid var(--accent); }
+ol.pasos { margin: 0; padding-left: 1.3rem; display: flex; flex-direction: column; gap: 14px; }
+ol.pasos > li { padding-left: 4px; }
+ol.pasos > li > * + * { margin-top: 8px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; font: 600 1rem var(--f-body); color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 8px; padding: 12px 18px; cursor: pointer; }
+.btn:hover { filter: brightness(1.08); }
+.btn:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
+.btn.ok { background: var(--ok); color: #06140c; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn-sec { font: 600 0.9rem var(--f-body); color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 11px 16px; cursor: pointer; }
+.btn-sec:hover { border-color: var(--accent); }
+.btn-sec:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.estado { font-size: 0.88rem; color: var(--muted); }
+details { border: 1px solid var(--line); border-radius: 8px; }
+details summary { cursor: pointer; padding: 10px 14px; font-weight: 600; }
+details .term { border-radius: 0 0 8px 8px; border-left: 0; border-right: 0; border-bottom: 0; }
+details .term pre { max-height: 420px; }
+textarea.fallback { width: 100%; height: 160px; font: 0.8rem var(--f-mono); background: var(--code); color: #d7dee7; border: 1px solid var(--accent); border-radius: 6px; padding: 10px; }
+
+footer { color: var(--muted); font-size: 0.85rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 480px) { section.ej { padding: 16px; } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">DevOps 2026 · Temas Selectos de Ingeniería en Computación 2 · FI UNAM</span>
+    <h1>Examen práctico · Módulo 1</h1>
+    <p class="lede">Trabaja como <code>root</code> en la VM Rocky Linux 9 que instalaste para el examen. Cada ejercicio indica qué debe quedar configurado y cómo comprobarlo. Al final ejecutarás un script que genera tu evidencia y la enviarás por correo.</p>
+    <form class="alumno" id="f-alumno" autocomplete="off">
+      <label for="in-nombre">Tu nombre (minúsculas, sin acentos)
+        <input id="in-nombre" name="nombre" placeholder="daniel" pattern="[a-z]+" maxlength="24">
+      </label>
+      <label for="in-apellido">Tu apellido (el de la partición de la instalación)
+        <input id="in-apellido" name="apellido" placeholder="guerrero" pattern="[a-z]+" maxlength="24">
+      </label>
+      <small>Al escribirlos, los comandos de esta página se ajustan a tus datos. Donde veas <code class="v-n">&lt;nombre&gt;</code> o <code class="v-a">&lt;apellido&gt;</code> usa siempre esos mismos valores.</small>
+    </form>
+  </header>
+
+  <nav aria-label="Ejercicios">
+    <ul class="ruta">
+      <li><a href="#ej0"><span class="n">00</span><span class="t">VM base</span><span class="p">10 pts</span></a></li>
+      <li><a href="#ej1"><span class="n">01</span><span class="t">Particiones y LVM</span><span class="p">20 pts</span></a></li>
+      <li><a href="#ej2"><span class="n">02</span><span class="t">Usuarios y ACL</span><span class="p">25 pts</span></a></li>
+      <li><a href="#ej3"><span class="n">03</span><span class="t">Paquetes dnf</span><span class="p">10 pts</span></a></li>
+      <li><a href="#ej4"><span class="n">04</span><span class="t">Podman</span><span class="p">20 pts</span></a></li>
+      <li><a href="#ej5"><span class="n">05</span><span class="t">Pod y systemd</span><span class="p">15 pts</span></a></li>
+      <li><a href="#evidencia"><span class="n">→</span><span class="t">Evidencia</span><span class="p">entrega</span></a></li>
+    </ul>
+  </nav>
+
+  <!-- ======================= 0 ======================= -->
+  <section class="ej" id="ej0" data-ej="0">
+    <div class="ej-head"><div><span class="num">EJERCICIO 00</span><h2>VM base del examen</h2></div><span class="pts">10 pts</span></div>
+    <p class="objetivo">Partes de la VM instalada según las instrucciones de Classroom. Confirma que el particionado quedó como se pidió antes de continuar.</p>
+    <div class="bloque">
+      <h3>Debe estar así</h3>
+      <ul class="req">
+        <li><label><input type="checkbox" id="r0-1"><span>Rocky Linux 9, instalación mínima, con salida a internet y acceso por SSH.</span></label></li>
+        <li><label><input type="checkbox" id="r0-2"><span>VG <code>rl</code> con <code>/</code> 16 GiB, <code>/home</code> 4 GiB, <code>/opt</code> 3 GiB, <code>/examen</code> 1 GiB, <code>/<span class="v-a">&lt;apellido&gt;</span></code> 1 GiB y swap 1 GiB.</span></label></li>
+        <li><label><input type="checkbox" id="r0-3"><span>Al menos 2 GiB del disco sin particionar.</span></label></li>
+      </ul>
+    </div>
+    <div class="bloque">
+      <h3>Verifica</h3>
+      <div class="term"><div class="bar"><span>root@vm</span><button class="copy" type="button">Copiar</button></div><pre>cat /etc/rocky-release
+lsblk -f
+df -hT /home /opt /examen /<span class="v v-a">&lt;apellido&gt;</span>
+swapon --show
+parted /dev/sda unit GiB print free   <span class="c"># o /dev/vda, /dev/nvme0n1</span></pre></div>
+    </div>
+  </section>
+
+  <!-- ======================= 1 ======================= -->
+  <section class="ej" id="ej1" data-ej="1">
+    <div class="ej-head"><div><span class="num">EJERCICIO 01</span><h2>Particiones y LVM</h2></div><span class="pts">20 pts</span></div>
+    <p class="objetivo">Demuestra que sabes crear una partición, convertirla en volumen físico y repartir un grupo de volúmenes nuevo en volúmenes lógicos persistentes. Estos tres volúmenes son los directorios de los continentes del ejercicio 02.</p>
+    <div class="bloque">
+      <h3>Debes configurar</h3>
+      <ul class="req">
+        <li><label><input type="checkbox" id="r1-1"><span>Una partición nueva de tipo <strong>Linux LVM</strong> que use todo el espacio libre del disco.</span></label></li>
+        <li><label><input type="checkbox" id="r1-2"><span>Esa partición como PV y, sobre ella, un VG nuevo llamado <code class="v-n">&lt;nombre&gt;</code>. El VG <code>rl</code> no se modifica.</span></label></li>
+        <li><label><input type="checkbox" id="r1-3"><span>Tres LV de <strong>500 MiB</strong> en el VG <code class="v-n">&lt;nombre&gt;</code>: <code>america</code>, <code>europa</code> y <code>asia</code>.</span></label></li>
+        <li><label><input type="checkbox" id="r1-4"><span>Cada LV con sistema de archivos <strong>ext4</strong>, montado en <code>/america</code>, <code>/europa</code> y <code>/asia</code>.</span></label></li>
+        <li><label><input type="checkbox" id="r1-5"><span>Montajes persistentes en <code>/etc/fstab</code>. Deben seguir montados después de reiniciar.</span></label></li>
+      </ul>
+    </div>
+    <div class="bloque">
+      <h3>Verifica</h3>
+      <div class="term"><div class="bar"><span>root@vm</span><button class="copy" type="button">Copiar</button></div><pre>lsblk -o NAME,SIZE,TYPE,PARTTYPENAME,MOUNTPOINTS
+pvs
+vgs <span class="v v-n">&lt;nombre&gt;</span>
+lvs <span class="v v-n">&lt;nombre&gt;</span>
+df -hT /america /europa /asia
+findmnt --verify</pre></div>
+    </div>
+  </section>
+
+  <!-- ======================= 2 ======================= -->
+  <section class="ej" id="ej2" data-ej="2">
+    <div class="ej-head"><div><span class="num">EJERCICIO 02</span><h2>Usuarios, grupos, permisos y ACL</h2></div><span class="pts">25 pts</span></div>
+    <p class="objetivo">Cada continente es un grupo y cada país es un usuario de su continente. Solo los países de un continente pueden trabajar en su directorio. Atlántida no pertenece a ningún continente, pero debe poder escribir en los tres directorios: eso solo se logra con ACL.</p>
+    <div class="tabs-grid">
+      <div class="bloque">
+        <h3>Grupos</h3>
+        <div class="tabla"><table>
+          <thead><tr><th>Grupo</th><th>GID</th><th>Directorio</th></tr></thead>
+          <tbody>
+            <tr><td>america</td><td class="mono">5000</td><td class="mono">/america</td></tr>
+            <tr><td>europa</td><td class="mono">6000</td><td class="mono">/europa</td></tr>
+            <tr><td>asia</td><td class="mono">7000</td><td class="mono">/asia</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="bloque">
+        <h3>Usuarios</h3>
+        <div class="tabla"><table>
+          <thead><tr><th>Usuario</th><th>UID</th><th>Grupo primario</th></tr></thead>
+          <tbody>
+            <tr><td>mexico</td><td class="mono">5001</td><td>america</td></tr>
+            <tr><td>brasil</td><td class="mono">5002</td><td>america</td></tr>
+            <tr><td>canada</td><td class="mono">5003</td><td>america</td></tr>
+            <tr><td>argentina</td><td class="mono">5004</td><td>america</td></tr>
+            <tr><td>espana</td><td class="mono">6001</td><td>europa</td></tr>
+            <tr><td>francia</td><td class="mono">6002</td><td>europa</td></tr>
+            <tr><td>italia</td><td class="mono">6003</td><td>europa</td></tr>
+            <tr><td>japon</td><td class="mono">7001</td><td>asia</td></tr>
+            <tr><td>china</td><td class="mono">7002</td><td>asia</td></tr>
+            <tr><td>corea</td><td class="mono">7003</td><td>asia</td></tr>
+            <tr><td><strong>atlantida</strong></td><td class="mono">8000</td><td>atlantida (propio)</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="bloque">
+      <h3>Debes configurar</h3>
+      <ul class="req">
+        <li><label><input type="checkbox" id="r2-1"><span>Los tres grupos y los once usuarios con exactamente los GID, UID y grupos primarios de las tablas.</span></label></li>
+        <li><label><input type="checkbox" id="r2-2"><span><code>atlantida</code> no es miembro de <code>america</code>, <code>europa</code> ni <code>asia</code>.</span></label></li>
+        <li><label><input type="checkbox" id="r2-3"><span>Cada directorio de continente con dueño <code>root</code>, grupo del continente y permisos <code>2770</code>.</span></label></li>
+        <li><label><input type="checkbox" id="r2-4"><span><code>atlantida</code> con permisos efectivos <code>rwx</code> en los tres directorios, mediante ACL.</span></label></li>
+        <li><label><input type="checkbox" id="r2-5"><span>Los archivos que cualquier país cree después en esos directorios también deben ser editables por <code>atlantida</code>.</span></label></li>
+      </ul>
+    </div>
+    <div class="bloque">
+      <h3>Verifica</h3>
+      <div class="term"><div class="bar"><span>root@vm</span><button class="copy" type="button">Copiar</button></div><pre>getent group america europa asia
+id mexico; id japon; id atlantida
+ls -ld /america /europa /asia
+getfacl /america /europa /asia
+
+<span class="c"># Debe funcionar</span>
+runuser -u atlantida -- touch /asia/desde_atlantida
+runuser -u mexico -- touch /america/desde_mexico
+<span class="c"># Debe fallar con "Permission denied"</span>
+runuser -u mexico -- touch /europa/intruso</pre></div>
+    </div>
+  </section>
+
+  <!-- ======================= 3 ======================= -->
+  <section class="ej" id="ej3" data-ej="3">
+    <div class="ej-head"><div><span class="num">EJERCICIO 03</span><h2>Instalación de paquetes con dnf</h2></div><span class="pts">10 pts</span></div>
+    <p class="objetivo">Instala software desde los repositorios oficiales y desde un repositorio adicional.</p>
+    <div class="bloque">
+      <h3>Debes instalar</h3>
+      <ul class="req">
+        <li><label><input type="checkbox" id="r3-1"><span>El repositorio EPEL (paquete <code>epel-release</code>).</span></label></li>
+        <li><label><input type="checkbox" id="r3-2"><span><code>htop</code>, que proviene de EPEL.</span></label></li>
+        <li><label><input type="checkbox" id="r3-3"><span><code>tree</code>.</span></label></li>
+      </ul>
+    </div>
+    <div class="bloque">
+      <h3>Verifica</h3>
+      <div class="term"><div class="bar"><span>root@vm</span><button class="copy" type="button">Copiar</button></div><pre>dnf repolist
+rpm -q epel-release htop tree
+dnf history list | head
+tree -L 1 /</pre></div>
+    </div>
+  </section>
+
+  <!-- ======================= 4 ======================= -->
+  <section class="ej" id="ej4" data-ej="4">
+    <div class="ej-head"><div><span class="num">EJERCICIO 04</span><h2>Podman: imagen, red, volumen y contenedor</h2></div><span class="pts">20 pts</span></div>
+    <p class="objetivo">Construye una imagen a partir del Containerfile que se te entrega y publica un sitio web con tu nombre. El contenido debe vivir en un volumen, no dentro de la imagen.</p>
+    <div class="bloque">
+      <h3>Containerfile del examen</h3>
+      <div class="term"><div class="bar"><span>Containerfile</span><button class="copy" type="button">Copiar</button></div><pre><span class="c"># Containerfile · Examen DevOps 2026 · Módulo 1</span>
+FROM docker.io/library/httpd:2.4
+LABEL curso="devops2026" examen="devops2026-m1"
+LABEL alumno="<span class="v v-full">CAMBIA_POR_TU_NOMBRE</span>"
+RUN sed -i 's/^#ServerName .*/ServerName examen.local:80/' /usr/local/apache2/conf/httpd.conf
+EXPOSE 80</pre></div>
+      <p class="estado">El servidor web de esta imagen sirve los archivos de <code>/usr/local/apache2/htdocs</code> por el puerto 80 del contenedor. Averigua cómo construir la imagen con este archivo.</p>
+    </div>
+    <div class="bloque">
+      <h3>Debes configurar</h3>
+      <ul class="req">
+        <li><label><input type="checkbox" id="r4-1"><span>Podman instalado.</span></label></li>
+        <li><label><input type="checkbox" id="r4-2"><span>El Containerfile con tu nombre en <code>LABEL alumno</code>, y la imagen construida como <code>localhost/examen-web:1.0</code>.</span></label></li>
+        <li><label><input type="checkbox" id="r4-3"><span>Una red de Podman llamada <code>red-<span class="v-n">&lt;nombre&gt;</span></code> y un volumen llamado <code>vol-<span class="v-n">&lt;nombre&gt;</span></code>, ambos creados antes del contenedor.</span></label></li>
+        <li><label><input type="checkbox" id="r4-4"><span>Un <code>index.html</code> dentro del volumen que muestre tu nombre completo.</span></label></li>
+        <li><label><input type="checkbox" id="r4-5"><span>El contenedor <code>web-<span class="v-n">&lt;nombre&gt;</span></code> con esa imagen, conectado a la red, con el volumen montado en <code>/usr/local/apache2/htdocs</code> y publicado en el puerto <strong>8090</strong> del host.</span></label></li>
+        <li><label><input type="checkbox" id="r4-6"><span>El puerto <code>8090/tcp</code> abierto de forma permanente en firewalld. El sitio debe abrir desde el navegador de tu equipo.</span></label></li>
+      </ul>
+    </div>
+    <div class="bloque">
+      <h3>Verifica</h3>
+      <div class="term"><div class="bar"><span>root@vm</span><button class="copy" type="button">Copiar</button></div><pre>podman images
+podman network ls
+podman volume ls
+podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}'
+curl http://localhost:8090
+firewall-cmd --list-ports
+<span class="c"># Desde tu equipo: http://IP_DE_TU_VM:8090</span></pre></div>
+    </div>
+  </section>
+
+  <!-- ======================= 5 ======================= -->
+  <section class="ej" id="ej5" data-ej="5">
+    <div class="ej-head"><div><span class="num">EJERCICIO 05</span><h2>Pod con arranque automático</h2></div><span class="pts">15 pts</span></div>
+    <p class="objetivo">Un contenedor creado a mano no vuelve después de un reinicio. Crea un pod con un segundo contenedor del mismo sitio y haz que systemd lo levante en cada arranque.</p>
+    <div class="bloque">
+      <h3>Debes configurar</h3>
+      <ul class="req">
+        <li><label><input type="checkbox" id="r5-1"><span>Un pod llamado <code>pod-<span class="v-n">&lt;nombre&gt;</span></code>, conectado a <code>red-<span class="v-n">&lt;nombre&gt;</span></code> y publicado en el puerto <strong>8091</strong> del host.</span></label></li>
+        <li><label><input type="checkbox" id="r5-2"><span>Dentro del pod, el contenedor <code>web-pod-<span class="v-n">&lt;nombre&gt;</span></code> con la imagen <code>localhost/examen-web:1.0</code> y el mismo volumen <code>vol-<span class="v-n">&lt;nombre&gt;</span></code>.</span></label></li>
+        <li><label><input type="checkbox" id="r5-3"><span>Unidades de systemd generadas con Podman en <code>/etc/systemd/system/</code>. La del pod debe llamarse <code>pod-pod-<span class="v-n">&lt;nombre&gt;</span>.service</code> y estar habilitada.</span></label></li>
+        <li><label><input type="checkbox" id="r5-4"><span>El puerto <code>8091/tcp</code> abierto de forma permanente en firewalld.</span></label></li>
+        <li><label><input type="checkbox" id="r5-5"><span>Reinicia la VM. El pod debe levantar solo, sin ningún comando tuyo.</span></label></li>
+      </ul>
+    </div>
+    <div class="bloque">
+      <h3>Verifica después de reiniciar</h3>
+      <div class="term"><div class="bar"><span>root@vm</span><button class="copy" type="button">Copiar</button></div><pre>uptime -s
+podman pod ps
+podman ps --pod
+systemctl status pod-pod-<span class="v v-n">&lt;nombre&gt;</span>.service --no-pager
+curl http://localhost:8091</pre></div>
+    </div>
+  </section>
+
+  <!-- ======================= Evidencia ======================= -->
+  <section class="ej evidencia" id="evidencia">
+    <div class="ej-head"><div><span class="num">ENTREGA</span><h2>Genera y envía tu evidencia</h2></div></div>
+    <p class="objetivo">El script revisa cada requisito, marca lo que está <code>OK</code> o en <code>FALTA</code>, calcula una calificación estimada y guarda la salida completa en un archivo.</p>
+    <ol class="pasos">
+      <li><p>Reinicia la VM, vuelve a entrar por SSH como <code>root</code> y arranca el contenedor del ejercicio 04, que no tiene arranque automático:</p>
+        <div class="term"><div class="bar"><span>root@vm</span><button class="copy" type="button">Copiar</button></div><pre>podman start web-<span class="v v-n">&lt;nombre&gt;</span></pre></div></li>
+      <li><p>Copia el script con este botón y pégalo completo en tu terminal SSH. Se guardará como <code>/root/evidencia-examen.sh</code>.</p>
+        <div class="btn-row">
+          <button class="btn" type="button" id="btn-script">Copiar script de evidencia</button>
+          <span class="estado" id="estado-script" role="status"></span>
+        </div>
+        <textarea class="fallback" id="fallback" hidden readonly aria-label="Script para copiar manualmente"></textarea></li>
+      <li><p>Ejecútalo con tu nombre y apellido:</p>
+        <div class="term"><div class="bar"><span>root@vm</span><button class="copy" type="button">Copiar</button></div><pre>bash /root/evidencia-examen.sh <span class="v v-n">&lt;nombre&gt;</span> <span class="v v-a">&lt;apellido&gt;</span></pre></div></li>
+      <li><p>Desde tu equipo, descarga el archivo generado:</p>
+        <div class="term"><div class="bar"><span>tu equipo</span><button class="copy" type="button">Copiar</button></div><pre>scp root@IP_DE_TU_VM:/root/evidencia-<span class="v v-n">&lt;nombre&gt;</span>-<span class="v v-a">&lt;apellido&gt;</span>.txt .</pre></div></li>
+      <li><p>Envíalo por correo al profesor con el asunto <strong>Examen M1 · <span class="v-full">Nombre Apellido</span></strong>, adjuntando el <code>.txt</code> sin modificarlo.</p></li>
+    </ol>
+    <p class="nota"><strong>Importante.</strong> El archivo incluye el identificador de tu VM, la hora de arranque y la salida real de los comandos. No edites su contenido.</p>
+    <details>
+      <summary>Ver el contenido del script</summary>
+      <div class="term"><div class="bar"><span>evidencia-examen.sh</span><button class="copy" type="button" data-src="sh">Copiar</button></div><pre id="sh-view"></pre></div>
+    </details>
+  </section>
+
+  <footer><span>DevOps 2026 · Módulo 1</span><span>Prof. Daniel Guerrero · FI UNAM</span></footer>
+</div>
+
+<script type="text/plain" id="sh">
+#!/usr/bin/env bash
+# ==================================================================
+#  Evidencia · Examen práctico Módulo 1 · DevOps 2026
+#  Uso:   bash evidencia-examen.sh <nombre> <apellido>
+#  Ej.:   bash evidencia-examen.sh daniel guerrero
+#  Nombre y apellido en minúsculas y sin acentos, los mismos que
+#  usaste para el VG y para la partición /<apellido>.
+# ==================================================================
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Ejecuta este script como root."
+  exit 1
+fi
+if [ $# -ne 2 ]; then
+  echo "Uso: bash $0 <nombre> <apellido>   (minúsculas, sin acentos)"
+  exit 1
+fi
+
+NOMBRE="${1,,}"
+APELLIDO="${2,,}"
+SALIDA="/root/evidencia-${NOMBRE}-${APELLIDO}.txt"
+
+CONTINENTES="america europa asia"
+# usuario:UID:grupo primario
+PAISES="mexico:5001:america brasil:5002:america canada:5003:america argentina:5004:america
+espana:6001:europa francia:6002:europa italia:6003:europa
+japon:7001:asia china:7002:asia corea:7003:asia"
+
+SEC_OK=0; SEC_TOT=0; TOTAL=0; RESUMEN=""
+
+check() {   # check "descripción" 'comando'
+  SEC_TOT=$((SEC_TOT + 1))
+  if eval "$2" >/dev/null 2>&1; then
+    printf '  [ OK  ]  %s\n' "$1"; SEC_OK=$((SEC_OK + 1))
+  else
+    printf '  [FALTA]  %s\n' "$1"
+  fi
+}
+
+seccion() {
+  SEC_OK=0; SEC_TOT=0
+  printf '\n==================================================================\n'
+  printf ' %s\n' "$1"
+  printf '==================================================================\n'
+}
+
+cerrar() {  # cerrar <puntos_máximos> <etiqueta>
+  local pts
+  pts=$(awk -v w="$1" -v o="$SEC_OK" -v t="$SEC_TOT" 'BEGIN{printf "%.1f", (t ? w*o/t : 0)}')
+  TOTAL=$(awk -v a="$TOTAL" -v b="$pts" 'BEGIN{printf "%.1f", a+b}')
+  printf '  → %d/%d verificaciones · %s / %s puntos\n' "$SEC_OK" "$SEC_TOT" "$pts" "$1"
+  RESUMEN+=$(printf '%-34s %2d/%-2d   %5s / %s' "$2" "$SEC_OK" "$SEC_TOT" "$pts" "$1")$'\n'
+}
+
+raw() {
+  printf '\n$ %s\n' "$1"
+  eval "$1" 2>&1 | sed 's/^/    /'
+}
+
+main() {
+  printf 'EVIDENCIA EXAMEN MÓDULO 1 · DEVOPS 2026\n'
+  printf 'Alumno:     %s %s\n' "$NOMBRE" "$APELLIDO"
+  printf 'Host:       %s\n' "$(hostname)"
+  printf 'Fecha:      %s\n' "$(date '+%Y-%m-%d %H:%M:%S %Z')"
+  printf 'Machine-ID: %s\n' "$(cat /etc/machine-id 2>/dev/null)"
+  printf 'Arranque:   %s\n' "$(uptime -s)"
+  printf 'Sistema:    %s\n' "$(cat /etc/rocky-release 2>/dev/null)"
+
+  # ---------------------------------------------------------------
+  seccion "0. Instalación base de la VM"
+  check "Rocky Linux 9"                          'grep -q "release 9" /etc/rocky-release'
+  check "VG rl existe"                           'vgs rl'
+  check "/home montado desde rl"                 'findmnt -no SOURCE /home | grep -q "rl-home"'
+  check "/opt montado desde rl"                  'findmnt -no SOURCE /opt | grep -q "rl-opt"'
+  check "/examen montado desde rl"               'findmnt -no SOURCE /examen | grep -q "rl-"'
+  check "/$APELLIDO montado desde rl"            'findmnt -no SOURCE /$APELLIDO | grep -q "rl-"'
+  check "/examen y /$APELLIDO en /etc/fstab"     'grep -Eq "[[:space:]]/examen[[:space:]]" /etc/fstab && grep -Eq "[[:space:]]/$APELLIDO[[:space:]]" /etc/fstab'
+  check "Swap activa de ~1 GiB"                  'swapon --show --noheadings --bytes | awk "{s+=\$3} END{exit !(s>=900000000 && s<=1200000000)}"'
+  cerrar 10 "0. Instalación base"
+
+  # ---------------------------------------------------------------
+  seccion "1. Particiones y LVM (VG $NOMBRE)"
+  PV_NUEVO=$(pvs --noheadings -o pv_name -S vg_name="$NOMBRE" 2>/dev/null | xargs)
+  PV_RL=$(pvs --noheadings -o pv_name -S vg_name=rl 2>/dev/null | xargs)
+  check "VG $NOMBRE existe"                      'vgs $NOMBRE'
+  check "PV de $NOMBRE es una partición nueva (distinta al PV de rl)" '[ -n "$PV_NUEVO" ] && [ "$PV_NUEVO" != "$PV_RL" ] && [ "$(lsblk -no TYPE $PV_NUEVO)" = "part" ]'
+  check "Partición marcada como Linux LVM"       'lsblk -no PARTTYPENAME $PV_NUEVO | grep -qi lvm'
+  for c in $CONTINENTES; do
+    check "LV $NOMBRE/$c existe"                 'lvs $NOMBRE/$c'
+    check "LV $c de ~500 MiB"                    '[ "$(lvs --noheadings --units m --nosuffix -o lv_size $NOMBRE/$c | awk "{printf \"%d\", \$1}")" -ge 480 ] && [ "$(lvs --noheadings --units m --nosuffix -o lv_size $NOMBRE/$c | awk "{printf \"%d\", \$1}")" -le 520 ]'
+    check "/$c montado desde $NOMBRE-$c en ext4" 'findmnt -no SOURCE /$c | grep -q "$NOMBRE-$c" && [ "$(findmnt -no FSTYPE /$c)" = "ext4" ]'
+    check "/$c persistente en /etc/fstab"        'grep -Eq "^[^#]*[[:space:]]/$c[[:space:]]+ext4" /etc/fstab'
+  done
+  check "fstab sin errores (findmnt --verify)"   'vgs $NOMBRE && findmnt --verify'
+  cerrar 20 "1. Particiones y LVM"
+
+  # ---------------------------------------------------------------
+  seccion "2. Usuarios, grupos, permisos y ACL"
+  check "Grupo america GID 5000"                 '[ "$(getent group america | cut -d: -f3)" = 5000 ]'
+  check "Grupo europa GID 6000"                  '[ "$(getent group europa | cut -d: -f3)" = 6000 ]'
+  check "Grupo asia GID 7000"                    '[ "$(getent group asia | cut -d: -f3)" = 7000 ]'
+  for p in $PAISES; do
+    u=${p%%:*}; r=${p#*:}; uid=${r%%:*}; g=${r#*:}
+    check "Usuario $u UID $uid, grupo primario $g" '[ "$(id -u $u)" = "$uid" ] && [ "$(id -gn $u)" = "$g" ]'
+  done
+  check "Usuario atlantida UID 8000"             '[ "$(id -u atlantida)" = 8000 ]'
+  check "atlantida NO pertenece a ningún continente" 'id atlantida && ! id -nG atlantida | grep -Eqw "america|europa|asia"'
+  check "Herramientas de ACL instaladas"         'command -v getfacl && command -v setfacl'
+  for c in $CONTINENTES; do
+    check "/$c propiedad root:$c con 2770"       '[ "$(stat -c "%U:%G %a" /$c)" = "root:$c 2770" ]'
+    check "ACL efectiva rwx para atlantida en /$c" 'getfacl -p /$c | grep -q "^user:atlantida:rwx" && ! getfacl -p /$c | grep "^user:atlantida" | grep -q effective'
+    check "ACL default para atlantida en /$c"    'getfacl -p /$c | grep -q "^default:user:atlantida:rwx"'
+    check "atlantida puede escribir en /$c"      'runuser -u atlantida -- touch /$c/.evid_atl && rm -f /$c/.evid_atl'
+  done
+  check "mexico escribe en /america"             'runuser -u mexico -- touch /america/.evid_mx && rm -f /america/.evid_mx'
+  check "mexico NO escribe en /europa"           'id mexico && [ -d /europa ] && ! runuser -u mexico -- touch /europa/.evid_mx'
+  rm -f /europa/.evid_mx 2>/dev/null
+  check "japon NO escribe en /america"           'id japon && [ -d /america ] && ! runuser -u japon -- touch /america/.evid_jp'
+  rm -f /america/.evid_jp 2>/dev/null
+  check "Archivo nuevo de francia en /europa es editable por atlantida" 'runuser -u francia -- touch /europa/.evid_def && runuser -u atlantida -- sh -c "echo ok >> /europa/.evid_def"'
+  rm -f /europa/.evid_def 2>/dev/null
+  cerrar 25 "2. Usuarios, grupos y ACL"
+
+  # ---------------------------------------------------------------
+  seccion "3. Paquetes con dnf"
+  check "epel-release instalado"                 'rpm -q epel-release'
+  check "htop instalado"                         'rpm -q htop'
+  check "tree instalado"                         'rpm -q tree'
+  cerrar 10 "3. Paquetes con dnf"
+
+  # ---------------------------------------------------------------
+  seccion "4. Podman: imagen, red, volumen y contenedor"
+  VOL_MP=$(podman volume inspect --format '{{.Mountpoint}}' "vol-$NOMBRE" 2>/dev/null)
+  check "podman instalado"                       'rpm -q podman'
+  check "Imagen localhost/examen-web:1.0"        'podman image exists localhost/examen-web:1.0'
+  check "Imagen construida con el Containerfile del examen" 'podman image inspect localhost/examen-web:1.0 | grep -Eq "\"examen\": ?\"devops2026-m1\""'
+  check "LABEL alumno con tu nombre"             'podman image inspect localhost/examen-web:1.0 | grep -Eiq "\"alumno\": ?\"[^\"]*$NOMBRE"'
+  check "Red red-$NOMBRE existe"                 'podman network exists red-$NOMBRE'
+  check "Volumen vol-$NOMBRE existe"             'podman volume exists vol-$NOMBRE'
+  check "index.html del volumen contiene tu nombre" 'grep -Eiq "$NOMBRE|$APELLIDO" "$VOL_MP/index.html"'
+  check "Contenedor web-$NOMBRE existe"          'podman container exists web-$NOMBRE'
+  check "web-$NOMBRE usa la imagen examen-web"   'podman container inspect web-$NOMBRE | grep -q "examen-web:1.0"'
+  check "web-$NOMBRE conectado a red-$NOMBRE"    'podman container inspect web-$NOMBRE | grep -q "\"red-$NOMBRE\""'
+  check "web-$NOMBRE monta vol-$NOMBRE"          'podman container inspect web-$NOMBRE | grep -q "\"vol-$NOMBRE\""'
+  check "web-$NOMBRE publica el puerto 8090"     'podman container inspect web-$NOMBRE | grep -Eq "\"HostPort\": ?\"8090\""'
+  check "http://localhost:8090 responde con tu nombre" 'curl -s --max-time 5 http://localhost:8090 | grep -Eiq "$NOMBRE|$APELLIDO"'
+  check "8090/tcp abierto en firewalld (permanente)" 'firewall-cmd --permanent --list-ports | grep -qw 8090/tcp'
+  cerrar 20 "4. Podman"
+
+  # ---------------------------------------------------------------
+  seccion "5. Pod con arranque automático (systemd)"
+  UNIDAD="pod-pod-$NOMBRE.service"
+  FRAG=$(systemctl show -p FragmentPath --value "$UNIDAD" 2>/dev/null)
+  BOOT=$(( $(date +%s) - $(cut -d. -f1 /proc/uptime) ))
+  check "Pod pod-$NOMBRE existe"                 'podman pod exists pod-$NOMBRE'
+  check "Contenedor web-pod-$NOMBRE dentro del pod" 'podman ps -a --filter pod=pod-$NOMBRE --format "{{.Names}}" | grep -qx web-pod-$NOMBRE'
+  check "web-pod-$NOMBRE usa la imagen examen-web" 'podman container inspect web-pod-$NOMBRE | grep -q "examen-web:1.0"'
+  check "web-pod-$NOMBRE monta vol-$NOMBRE"      'podman container inspect web-pod-$NOMBRE | grep -q "\"vol-$NOMBRE\""'
+  check "Pod publica el puerto 8091"             'podman pod inspect pod-$NOMBRE | grep -Eq "\"HostPort\": ?\"8091\""'
+  check "Pod conectado a red-$NOMBRE"            'podman pod inspect pod-$NOMBRE | grep -q "red-$NOMBRE"'
+  check "Unidad $UNIDAD en /etc/systemd/system"  '[ "$FRAG" = "/etc/systemd/system/$UNIDAD" ]'
+  check "$UNIDAD habilitada"                     'systemctl is-enabled --quiet $UNIDAD'
+  check "$UNIDAD activa"                         'systemctl is-active --quiet $UNIDAD'
+  check "El sistema se reinició después de crear la unidad" '[ -n "$FRAG" ] && [ "$(stat -c %Y "$FRAG")" -lt "$BOOT" ]'
+  check "http://localhost:8091 responde con tu nombre" 'curl -s --max-time 5 http://localhost:8091 | grep -Eiq "$NOMBRE|$APELLIDO"'
+  check "8091/tcp abierto en firewalld (permanente)" 'firewall-cmd --permanent --list-ports | grep -qw 8091/tcp'
+  cerrar 15 "5. Pod y systemd"
+
+  # ---------------------------------------------------------------
+  printf '\n==================================================================\n'
+  printf ' RESUMEN\n'
+  printf '==================================================================\n'
+  printf '%s' "$RESUMEN"
+  printf '%-34s                %5s / 100\n' "CALIFICACIÓN ESTIMADA" "$TOTAL"
+  printf '(La calificación final la asigna el profesor revisando la evidencia.)\n'
+
+  # ---------------------------------------------------------------
+  printf '\n==================================================================\n'
+  printf ' EVIDENCIA EN CRUDO\n'
+  printf '==================================================================\n'
+  raw "ip -br address"
+  raw "lsblk -f"
+  raw "pvs; vgs; lvs"
+  raw "df -hT -x tmpfs -x devtmpfs"
+  raw "swapon --show"
+  raw "grep -v '^#' /etc/fstab | grep -v '^\$'"
+  raw "getent group america europa asia atlantida"
+  raw "for u in mexico brasil canada argentina espana francia italia japon china corea atlantida; do id \$u; done"
+  raw "ls -ld /america /europa /asia"
+  raw "getfacl -p /america /europa /asia"
+  raw "rpm -q epel-release htop tree podman"
+  raw "podman images"
+  raw "podman network ls"
+  raw "podman volume ls"
+  raw "cat $VOL_MP/index.html"
+  raw "podman ps -a --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Pod}}'"
+  raw "podman pod ps"
+  raw "systemctl status $UNIDAD --no-pager"
+  raw "firewall-cmd --list-all"
+  raw "curl -s --max-time 5 http://localhost:8090"
+  raw "curl -s --max-time 5 http://localhost:8091"
+}
+
+main 2>&1 | tee "$SALIDA"
+
+printf '\nEvidencia guardada en: %s\n' "$SALIDA"
+printf 'Cópiala a tu equipo y envíala por correo al profesor, por ejemplo:\n'
+printf '  scp root@<IP_DE_TU_VM>:%s .\n' "$SALIDA"
+</script>
+<script>
+(function () {
+  var SCRIPT = document.getElementById('sh').textContent.replace(/^\n/, '');
+  document.getElementById('sh-view').textContent = SCRIPT;
+  var INSTALL = "cat > /root/evidencia-examen.sh <<'EVIDENCIA_FIN'\n" + SCRIPT.replace(/\n?$/, '\n') +
+    "EVIDENCIA_FIN\nchmod +x /root/evidencia-examen.sh && echo 'Script guardado en /root/evidencia-examen.sh'\n";
+
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+
+  var inN = document.getElementById('in-nombre'), inA = document.getElementById('in-apellido');
+  function clean(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, ''); }
+  function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  function paint() {
+    var n = clean(inN.value), a = clean(inA.value);
+    document.querySelectorAll('.v-n').forEach(function (el) { el.textContent = n || '<nombre>'; });
+    document.querySelectorAll('.v-a').forEach(function (el) { el.textContent = a || '<apellido>'; });
+    document.querySelectorAll('.v-full').forEach(function (el) {
+      el.textContent = (n || a) ? (cap(n) + ' ' + cap(a)).trim() : (el.dataset.def || (el.dataset.def = el.textContent));
+    });
+  }
+  document.querySelectorAll('.v-full').forEach(function (el) { el.dataset.def = el.textContent; });
+  [inN, inA].forEach(function (el) {
+    var saved = store('ex-m1-' + el.name); if (saved) el.value = saved;
+    el.addEventListener('input', function () { var c = clean(el.value); if (c !== el.value) el.value = c; store('ex-m1-' + el.name, c); paint(); });
+  });
+  document.getElementById('f-alumno').addEventListener('submit', function (e) { e.preventDefault(); });
+  paint();
+
+  function progress() {
+    document.querySelectorAll('section.ej[data-ej]').forEach(function (sec) {
+      var boxes = sec.querySelectorAll('ul.req input'), all = boxes.length > 0;
+      boxes.forEach(function (b) { if (!b.checked) all = false; });
+      var link = document.querySelector('.ruta a[href="#' + sec.id + '"]');
+      if (link) link.classList.toggle('done', all);
+    });
+  }
+  document.querySelectorAll('ul.req input').forEach(function (b) {
+    if (store('ex-m1-' + b.id) === '1') b.checked = true;
+    b.addEventListener('change', function () { store('ex-m1-' + b.id, b.checked ? '1' : '0'); progress(); });
+  });
+  progress();
+
+  function flash(btn, txt) { var o = btn.dataset.o || (btn.dataset.o = btn.textContent); btn.textContent = txt; btn.classList.add('ok'); setTimeout(function () { btn.textContent = o; btn.classList.remove('ok'); }, 1600); }
+  function selectPre(pre) { var r = document.createRange(); r.selectNodeContents(pre); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var pre = btn.closest('.term').querySelector('pre');
+      var text = btn.dataset.src === 'sh' ? SCRIPT : pre.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { flash(btn, 'Copiado'); }, function () { selectPre(pre); flash(btn, 'Ctrl+C'); });
+      } else { selectPre(pre); flash(btn, 'Ctrl+C'); }
+    });
+  });
+
+  var bS = document.getElementById('btn-script'), est = document.getElementById('estado-script'), fb = document.getElementById('fallback');
+  bS.addEventListener('click', function () {
+    function manual() { fb.value = INSTALL; fb.hidden = false; fb.focus(); fb.select(); est.textContent = 'Tu navegador no permitió copiar. Copia el texto seleccionado con Ctrl+C.'; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(INSTALL).then(function () {
+        flash(bS, 'Script copiado'); est.textContent = 'Pégalo en tu sesión SSH como root y presiona Enter.';
+      }, manual);
+    } else { manual(); }
+  });
+})();
+</script>
+
+</body></html>

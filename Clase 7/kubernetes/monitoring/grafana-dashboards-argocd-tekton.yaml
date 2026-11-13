@@ -1,0 +1,694 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Dashboards de Grafana: ArgoCD + Tekton
+# Aplica con:  kubectl apply -f grafana-dashboards-argocd-tekton.yaml
+# Luego parchear el Deployment (ver instrucciones al final)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Dashboard ArgoCD ─────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-argocd
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  argocd.json: |
+    {
+      "id": null,
+      "uid": "argocd-bootcamp",
+      "title": "ArgoCD — Estado de Aplicaciones",
+      "description": "Sync status, health y operaciones de ArgoCD",
+      "tags": ["argocd", "gitops", "bootcamp"],
+      "timezone": "browser",
+      "schemaVersion": 38,
+      "version": 1,
+      "refresh": "30s",
+      "time": { "from": "now-1h", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "datasource",
+            "type": "datasource",
+            "query": "prometheus",
+            "current": { "text": "Prometheus-monitoring", "value": "prometheus-monitoring" },
+            "hide": 0,
+            "label": "Datasource"
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Apps Sincronizadas",
+          "type": "stat",
+          "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              },
+              "color": { "mode": "thresholds" },
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "count(argocd_app_info{sync_status=\"Synced\"})",
+              "legendFormat": "Synced"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Apps OutOfSync",
+          "type": "stat",
+          "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 1 }
+                ]
+              },
+              "color": { "mode": "thresholds" },
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "count(argocd_app_info{sync_status=\"OutOfSync\"}) or vector(0)",
+              "legendFormat": "OutOfSync"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Apps Healthy",
+          "type": "stat",
+          "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              },
+              "color": { "mode": "thresholds" },
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "count(argocd_app_info{health_status=\"Healthy\"})",
+              "legendFormat": "Healthy"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Apps Degraded",
+          "type": "stat",
+          "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 1 }
+                ]
+              },
+              "color": { "mode": "thresholds" },
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "count(argocd_app_info{health_status=\"Degraded\"}) or vector(0)",
+              "legendFormat": "Degraded"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "title": "Total Operaciones de Sync",
+          "type": "stat",
+          "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "area"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "sum(argocd_app_sync_total) or vector(0)",
+              "legendFormat": "Total syncs"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "title": "Estado de Aplicaciones",
+          "type": "table",
+          "gridPos": { "x": 0, "y": 4, "w": 24, "h": 8 },
+          "options": {
+            "sortBy": [{ "displayName": "App", "desc": false }],
+            "footer": { "show": false }
+          },
+          "fieldConfig": {
+            "defaults": { "custom": { "align": "left" } },
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "sync_status" },
+                "properties": [
+                  {
+                    "id": "custom.displayMode",
+                    "value": "color-background"
+                  },
+                  {
+                    "id": "mappings",
+                    "value": [
+                      { "type": "value", "options": { "Synced": { "color": "green", "index": 0 } } },
+                      { "type": "value", "options": { "OutOfSync": { "color": "orange", "index": 1 } } }
+                    ]
+                  },
+                  { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } }
+                ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "health_status" },
+                "properties": [
+                  {
+                    "id": "custom.displayMode",
+                    "value": "color-background"
+                  },
+                  {
+                    "id": "mappings",
+                    "value": [
+                      { "type": "value", "options": { "Healthy": { "color": "green", "index": 0 } } },
+                      { "type": "value", "options": { "Degraded": { "color": "red", "index": 1 } } },
+                      { "type": "value", "options": { "Progressing": { "color": "blue", "index": 2 } } }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "argocd_app_info",
+              "instant": true,
+              "legendFormat": "{{name}}",
+              "format": "table"
+            }
+          ],
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "Value": true,
+                  "__name__": true,
+                  "container": true,
+                  "endpoint": true,
+                  "instance": true,
+                  "job": true,
+                  "pod": true,
+                  "service": true,
+                  "operation": true
+                },
+                "renameByName": {
+                  "name": "App",
+                  "project": "Proyecto",
+                  "namespace": "Namespace",
+                  "sync_status": "Sync",
+                  "health_status": "Health",
+                  "dest_namespace": "Dest NS",
+                  "dest_server": "Cluster"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "title": "Operaciones de Sync por App (tasa 5m)",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "ops",
+              "custom": { "lineWidth": 2, "fillOpacity": 10 }
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "rate(argocd_app_sync_total[5m])",
+              "legendFormat": "{{name}} ({{phase}})"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "title": "Git Request Duration (p99)",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "s",
+              "custom": { "lineWidth": 2, "fillOpacity": 10 }
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "histogram_quantile(0.99, rate(argocd_git_request_duration_seconds_bucket[5m]))",
+              "legendFormat": "p99 {{request_type}}"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "title": "K8s API Requests por ArgoCD (tasa 5m)",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "reqps",
+              "custom": { "lineWidth": 2, "fillOpacity": 10 }
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "rate(argocd_app_k8s_request_total[5m])",
+              "legendFormat": "{{resource_kind}} {{verb}}"
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "title": "Recursos en Cluster Gestionados por ArgoCD",
+          "type": "stat",
+          "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "area",
+            "orientation": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "sum(argocd_cluster_api_resources_count) by (kind)",
+              "legendFormat": "{{kind}}"
+            }
+          ]
+        }
+      ]
+    }
+
+---
+# ── Dashboard Tekton ─────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-tekton
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  tekton.json: |
+    {
+      "id": null,
+      "uid": "tekton-bootcamp",
+      "title": "Tekton — Pipelines & Tasks",
+      "description": "PipelineRuns, TaskRuns, duración y estado del controller",
+      "tags": ["tekton", "cicd", "bootcamp"],
+      "timezone": "browser",
+      "schemaVersion": 38,
+      "version": 1,
+      "refresh": "30s",
+      "time": { "from": "now-3h", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "title": "PipelineRuns Totales",
+          "type": "stat",
+          "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "area"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "sum(tekton_pipelines_controller_pipelinerun_count_total) or vector(0)",
+              "legendFormat": "PipelineRuns"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "TaskRuns Totales",
+          "type": "stat",
+          "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "area"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "sum(tekton_pipelines_controller_taskrun_count_total) or vector(0)",
+              "legendFormat": "TaskRuns"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Goroutines del Controller",
+          "type": "stat",
+          "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "area"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 200 },
+                  { "color": "red", "value": 500 }
+                ]
+              },
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "go_goroutines{job=\"tekton\"}",
+              "legendFormat": "{{instance}}"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Work Queue Depth",
+          "type": "stat",
+          "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "area"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 10 },
+                  { "color": "red", "value": 50 }
+                ]
+              },
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "sum(workqueue_depth{job=\"tekton\"}) or vector(0)",
+              "legendFormat": "Queue depth"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "title": "Duración de PipelineRuns (p50 / p95 / p99)",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "s",
+              "custom": { "lineWidth": 2, "fillOpacity": 5 }
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "histogram_quantile(0.50, rate(tekton_pipelines_controller_pipelinerun_duration_seconds_bucket[10m]))",
+              "legendFormat": "p50"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "histogram_quantile(0.95, rate(tekton_pipelines_controller_pipelinerun_duration_seconds_bucket[10m]))",
+              "legendFormat": "p95"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "histogram_quantile(0.99, rate(tekton_pipelines_controller_pipelinerun_duration_seconds_bucket[10m]))",
+              "legendFormat": "p99"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "title": "Duración de TaskRuns (p50 / p95 / p99)",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "s",
+              "custom": { "lineWidth": 2, "fillOpacity": 5 }
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "histogram_quantile(0.50, rate(tekton_pipelines_controller_taskrun_duration_seconds_bucket[10m]))",
+              "legendFormat": "p50"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "histogram_quantile(0.95, rate(tekton_pipelines_controller_taskrun_duration_seconds_bucket[10m]))",
+              "legendFormat": "p95"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "histogram_quantile(0.99, rate(tekton_pipelines_controller_taskrun_duration_seconds_bucket[10m]))",
+              "legendFormat": "p99"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "title": "Tasa de PipelineRuns (por estado)",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "ops",
+              "custom": { "lineWidth": 2, "fillOpacity": 10 }
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "rate(tekton_pipelines_controller_pipelinerun_count_total[10m])",
+              "legendFormat": "PipelineRuns/s"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "title": "Reconciler Work Queue — Add Rate (5m)",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "ops",
+              "custom": { "lineWidth": 2, "fillOpacity": 5 }
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "rate(workqueue_adds_total{job=\"tekton\"}[5m])",
+              "legendFormat": "{{name}}"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "title": "Controller — Uso de Memoria (RSS)",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "bytes",
+              "custom": { "lineWidth": 2, "fillOpacity": 10 }
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "process_resident_memory_bytes{job=\"tekton\"}",
+              "legendFormat": "{{instance}}"
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "title": "Controller — Goroutines en el Tiempo",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "short",
+              "custom": { "lineWidth": 2, "fillOpacity": 5 }
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus-monitoring" },
+              "expr": "go_goroutines{job=\"tekton\"}",
+              "legendFormat": "{{instance}}"
+            }
+          ]
+        }
+      ]
+    }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# INSTRUCCIONES DE APLICACIÓN EN EL CLUSTER
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# 1. Copiar al master y aplicar:
+#    kubectl apply -f grafana-dashboards-argocd-tekton.yaml
+#
+# 2. Agregar los 2 nuevos volúmenes al Deployment de Grafana:
+#    kubectl patch deployment grafana -n monitoring --type=json -p='[
+#      {"op":"add","path":"/spec/template/spec/volumes/-",
+#       "value":{"name":"dashboard-argocd","configMap":{"name":"grafana-dashboard-argocd"}}},
+#      {"op":"add","path":"/spec/template/spec/volumes/-",
+#       "value":{"name":"dashboard-tekton","configMap":{"name":"grafana-dashboard-tekton"}}},
+#      {"op":"add","path":"/spec/template/spec/containers/0/volumeMounts/-",
+#       "value":{"name":"dashboard-argocd","mountPath":"/var/lib/grafana/dashboards/argocd.json","subPath":"argocd.json"}},
+#      {"op":"add","path":"/spec/template/spec/containers/0/volumeMounts/-",
+#       "value":{"name":"dashboard-tekton","mountPath":"/var/lib/grafana/dashboards/tekton.json","subPath":"tekton.json"}}
+#    ]'
+#
+# 3. Reiniciar Grafana:
+#    kubectl rollout restart deployment/grafana -n monitoring
+#    kubectl rollout status deployment/grafana -n monitoring
+#
+# 4. Abrir: http://192.168.109.142:30302
+#    Dashboards → Browse → Folder: Bootcamp
+#    Deben aparecer: "ArgoCD — Estado de Aplicaciones" y "Tekton — Pipelines & Tasks"

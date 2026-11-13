@@ -1,0 +1,30 @@
+---
+- name: Cuidadores del zoológico
+  hosts: web
+  become: true
+  vars:
+    cuidadores:
+      - koala
+      - panda
+      - lince
+  tasks:
+    - name: Crear grupo cuidadores
+      ansible.builtin.group:
+        name: cuidadores
+        state: present
+
+    - name: Crear usuarios
+      ansible.builtin.user:
+        name: "{{ item }}"
+        groups: cuidadores
+        append: true
+        shell: /bin/bash
+      loop: "{{ cuidadores }}"
+
+    - name: Directorio compartido
+      ansible.builtin.file:
+        path: /opt/zoologico
+        state: directory
+        group: cuidadores
+        mode: "2770"
+

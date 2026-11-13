@@ -1,0 +1,10 @@
+<html>
+  <body style="font-family:monospace;background:#111;color:#5af78e">
+    <h1>{{ titulo }}</h1>
+    <p>Servidor: {{ ansible_facts['hostname'] }}</p>
+    <p>SO: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}</p>
+    <p>Memoria: {{ ansible_facts['memtotal_mb'] }} MB</p>
+    <p>Desplegado por Ansible</p>
+  </body>
+</html>
+

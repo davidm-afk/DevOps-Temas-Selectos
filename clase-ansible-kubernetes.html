@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ansible → Kubernetes · DevOps 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0f14; --bg2:#111821; --panel:#141d28; --line:#223040;
+  --text:#d6e2ee; --muted:#8197ab; --green:#5af78e; --cyan:#57c7ff;
+  --yellow:#f3f99d; --orange:#ffb86c; --red:#ff6b6b; --purple:#c792ea;
+  --mono:'JetBrains Mono',ui-monospace,monospace; --display:'Syne',sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--mono);font-size:15px;line-height:1.65}
+a{color:var(--cyan)}
+/* layout */
+.wrap{display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+nav{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--line);padding:28px 20px}
+nav .brand{font-family:var(--display);font-weight:800;font-size:20px;color:#fff;line-height:1.2;margin-bottom:6px}
+nav .sub{color:var(--muted);font-size:12px;margin-bottom:24px}
+nav a{display:block;color:var(--muted);text-decoration:none;padding:7px 10px;border-radius:6px;font-size:13px;border-left:2px solid transparent}
+nav a:hover{color:var(--text);background:var(--panel)}
+nav a.active{color:var(--green);border-left-color:var(--green);background:var(--panel)}
+nav a span{color:var(--line);margin-right:6px}
+nav a.active span{color:var(--green)}
+nav .grp{font-size:11px;letter-spacing:.12em;color:var(--orange);margin:18px 10px 6px;text-transform:uppercase}
+main{padding:48px clamp(16px,5vw,72px) 120px;max-width:1080px}
+/* hero */
+.hero{border:1px solid var(--line);border-radius:14px;padding:36px;background:
+  radial-gradient(circle at 90% 10%,rgba(87,199,255,.12),transparent 50%),
+  radial-gradient(circle at 10% 90%,rgba(90,247,142,.10),transparent 50%),var(--panel);margin-bottom:56px}
+.hero .prompt{color:var(--green);font-size:13px}
+.hero h1{font-family:var(--display);font-size:clamp(32px,5vw,54px);line-height:1.05;margin:10px 0 16px;color:#fff}
+.hero h1 em{font-style:normal;color:var(--cyan)}
+.hero p{color:var(--muted);max-width:720px;margin:0}
+.agenda{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:28px}
+.agenda div{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px}
+.agenda b{color:var(--orange);margin-right:6px}
+/* sections */
+section{margin-bottom:72px;scroll-margin-top:24px}
+.tag{display:inline-block;font-size:12px;color:var(--orange);letter-spacing:.14em;text-transform:uppercase}
+h2{font-family:var(--display);font-size:clamp(26px,3.4vw,36px);color:#fff;margin:6px 0 18px;line-height:1.15}
+h3{font-family:var(--display);font-size:20px;color:var(--cyan);margin:34px 0 10px}
+p{margin:10px 0}
+code.i{background:var(--panel);border:1px solid var(--line);padding:1px 6px;border-radius:4px;color:var(--yellow);font-size:13.5px}
+/* code blocks */
+.code{position:relative;margin:14px 0;border:1px solid var(--line);border-radius:10px;background:#070a0e;overflow:hidden}
+.code .bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--bg2);font-size:12px;color:var(--muted)}
+.code .bar i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.code .bar i:nth-child(1){background:#ff5f57}.code .bar i:nth-child(2){background:#febc2e}.code .bar i:nth-child(3){background:#28c840}
+.code .bar .t{margin-left:8px}
+.code button{margin-left:auto;background:transparent;border:1px solid var(--line);color:var(--muted);font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:5px;cursor:pointer}
+.code button:hover{color:var(--green);border-color:var(--green)}
+pre{margin:0;padding:16px 18px;overflow-x:auto;font-size:13.5px;line-height:1.6}
+.c{color:#5c6f82}.p{color:var(--green)}.k{color:var(--purple)}.s{color:var(--yellow)}.o{color:var(--cyan)}.r{color:var(--red)}.w{color:var(--orange)}
+/* callouts */
+.call{border-left:3px solid var(--cyan);background:var(--panel);border-radius:0 10px 10px 0;padding:14px 18px;margin:18px 0}
+.call b.h{display:block;font-family:var(--display);font-size:15px;margin-bottom:4px}
+.call.fail{border-color:var(--red)} .call.fail b.h{color:var(--red)}
+.call.ok{border-color:var(--green)} .call.ok b.h{color:var(--green)}
+.call.ask{border-color:var(--purple)} .call.ask b.h{color:var(--purple)}
+.call.note{border-color:var(--orange)} .call.note b.h{color:var(--orange)}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:18px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.card h4{margin:0 0 6px;font-family:var(--display);color:#fff;font-size:16px}
+.card .ico{font-size:22px;color:var(--green);margin-bottom:6px;display:block}
+.card p{font-size:13.5px;color:var(--muted);margin:0}
+/* steps */
+.steps{counter-reset:st;list-style:none;padding:0;margin:14px 0}
+.steps>li{counter-increment:st;position:relative;padding-left:46px;margin:16px 0}
+.steps>li::before{content:counter(st,decimal-leading-zero);position:absolute;left:0;top:0;color:var(--bg);background:var(--green);font-weight:700;font-size:12px;border-radius:5px;padding:2px 7px}
+/* tables */
+.tbl{overflow-x:auto;margin:18px 0;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg2);color:var(--orange);font-weight:500;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+td:first-child{color:#fff;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td .y{color:var(--green)} td .n{color:var(--red)}
+/* svg */
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin:18px 0}
+.fig svg{width:100%;height:auto;display:block}
+.fig figcaption{color:var(--muted);font-size:12px;margin-top:10px;text-align:center}
+/* tabs */
+.tabs{margin:18px 0}
+.tabs .tb{display:flex;gap:6px;flex-wrap:wrap}
+.tabs .tb button{background:var(--panel);border:1px solid var(--line);color:var(--muted);font-family:var(--mono);font-size:13px;padding:8px 14px;border-radius:8px 8px 0 0;cursor:pointer}
+.tabs .tb button.on{color:var(--green);border-color:var(--green);border-bottom-color:transparent}
+.tabs .pane{display:none;border:1px solid var(--line);border-radius:0 10px 10px 10px;padding:6px 18px 14px;background:var(--bg2)}
+.tabs .pane.on{display:block}
+.check{list-style:none;padding:0}
+.check li{padding-left:26px;position:relative;margin:6px 0}
+.check li::before{content:"▹";position:absolute;left:4px;color:var(--green)}
+hr{border:none;border-top:1px dashed var(--line);margin:40px 0}
+@media (max-width:860px){.wrap{grid-template-columns:1fr}nav{position:static;height:auto}}
+@media print{nav{display:none}.wrap{display:block}.code button{display:none}body{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav id="toc">
+  <div class="brand">Ansible → Kubernetes</div>
+  <div class="sub">DevOps 2026 · Rocky Linux 9 · 1 VM</div>
+  <div class="grp">Parte 1 · SSH</div>
+  <a href="#lab"><span>00</span>El laboratorio</a>
+  <a href="#ssh"><span>01</span>Llaves SSH</a>
+  <a href="#copiar"><span>02</span>Copiar archivos</a>
+  <div class="grp">Parte 2 · Ansible</div>
+  <a href="#porque"><span>03</span>¿Por qué Ansible?</a>
+  <a href="#setup"><span>04</span>Instalación e inventario</a>
+  <a href="#adhoc"><span>05</span>Comandos ad-hoc</a>
+  <a href="#playbooks"><span>06</span>Playbooks</a>
+  <div class="grp">Parte 3 · Kubernetes</div>
+  <a href="#k8s-para"><span>07</span>¿Para qué Kubernetes?</a>
+  <a href="#k8s-arq"><span>08</span>Arquitectura</a>
+  <a href="#vs"><span>09</span>Podman/Docker vs K8s</a>
+  <a href="#cierre"><span>10</span>Cierre y repaso</a>
+</nav>
+
+<main>
+<!-- HERO -->
+<div class="hero">
+  <div class="prompt">[root@rocky9 ~]# ./clase --tema automatizacion</div>
+  <h1>De <em>SSH</em> a <em>Ansible</em><br>y el salto a <em>Kubernetes</em></h1>
+  <p>Toda la práctica corre en <b>una sola máquina virtual Rocky Linux 9</b>. El truco: la VM es al mismo tiempo el <b>nodo de control</b> (root) y el <b>nodo administrado</b> (usuario <code class="i">ansible</code> vía SSH a <code class="i">nodo1 → 127.0.0.1</code>). Para Ansible da igual si el host está a 1 cm o a 1,000 km: todo pasa por SSH.</p>
+  <div class="agenda">
+    <div><b>01</b>Llaves SSH y known_hosts</div>
+    <div><b>02</b>scp · rsync · sftp</div>
+    <div><b>03</b>Beneficios de Ansible</div>
+    <div><b>04–06</b>Ad-hoc, idempotencia, playbooks</div>
+    <div><b>07–08</b>Kubernetes: propósito y arquitectura</div>
+    <div><b>09</b>Contenedores solos vs orquestador</div>
+  </div>
+</div>
+
+<!-- 00 LAB -->
+<section id="lab">
+  <span class="tag">00 · Escenario</span>
+  <h2>Una VM, dos papeles</h2>
+  <figure class="fig">
+  <svg viewBox="0 0 820 260" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+    <rect x="10" y="10" width="800" height="240" rx="14" fill="#0b0f14" stroke="#223040" stroke-dasharray="6 5"/>
+    <text x="30" y="40" fill="#ffb86c" font-size="14">VM Rocky Linux 9</text>
+    <rect x="40" y="70" width="290" height="150" rx="10" fill="#141d28" stroke="#57c7ff"/>
+    <text x="60" y="100" fill="#57c7ff" font-size="15" font-weight="700">Nodo de control</text>
+    <text x="60" y="128" fill="#d6e2ee" font-size="13">usuario: root</text>
+    <text x="60" y="150" fill="#d6e2ee" font-size="13">ansible-core, playbooks</text>
+    <text x="60" y="172" fill="#d6e2ee" font-size="13">~/.ssh/id_ed25519 (privada)</text>
+    <text x="60" y="194" fill="#8197ab" font-size="12">/root/devops2026/ansible</text>
+    <rect x="490" y="70" width="290" height="150" rx="10" fill="#141d28" stroke="#5af78e"/>
+    <text x="510" y="100" fill="#5af78e" font-size="15" font-weight="700">Nodo administrado</text>
+    <text x="510" y="128" fill="#d6e2ee" font-size="13">host: nodo1 → 127.0.0.1</text>
+    <text x="510" y="150" fill="#d6e2ee" font-size="13">usuario: ansible (+sudo)</text>
+    <text x="510" y="172" fill="#d6e2ee" font-size="13">authorized_keys (pública)</text>
+    <text x="510" y="194" fill="#8197ab" font-size="12">sshd :22 · python3</text>
+    <line x1="335" y1="145" x2="482" y2="145" stroke="#f3f99d" stroke-width="2"/>
+    <polygon points="482,139 494,145 482,151" fill="#f3f99d"/>
+    <text x="352" y="135" fill="#f3f99d" font-size="13">SSH :22</text>
+    <text x="345" y="168" fill="#8197ab" font-size="11">sin contraseña</text>
+  </svg>
+  <figcaption>Mismo kernel, mismos discos — pero la comunicación es exactamente igual que con un servidor remoto.</figcaption>
+  </figure>
+  <div class="call ask"><b class="h">Pregunta para abrir la clase</b>Si mañana te piden instalar <code class="i">httpd</code>, crear 5 usuarios y publicar una página en <b>50 servidores</b>, ¿cuántas veces escribirías el mismo comando? ¿Y si a la mitad se cae la red?</div>
+</section>
+
+<!-- 01 SSH -->
+<section id="ssh">
+  <span class="tag">01 · Fundamentos</span>
+  <h2>Cómo funcionan las llaves SSH</h2>
+  <p>SSH usa <b>criptografía asimétrica</b>: un par de llaves matemáticamente ligadas. La <b>privada</b> nunca sale de tu máquina; la <b>pública</b> se copia a cada servidor al que quieres entrar. Al conectarte, el servidor te lanza un reto que solo puede firmar quien tenga la privada.</p>
+
+  <figure class="fig">
+  <svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+    <rect x="20" y="20" width="230" height="260" rx="12" fill="#141d28" stroke="#57c7ff"/>
+    <text x="40" y="50" fill="#57c7ff" font-size="15" font-weight="700">Cliente (root)</text>
+    <text x="40" y="85" fill="#ff6b6b" font-size="13">🔑 id_ed25519</text>
+    <text x="40" y="104" fill="#8197ab" font-size="11">privada · permisos 600</text>
+    <text x="40" y="140" fill="#5af78e" font-size="13">🔓 id_ed25519.pub</text>
+    <text x="40" y="159" fill="#8197ab" font-size="11">pública · se puede compartir</text>
+    <rect x="570" y="20" width="230" height="260" rx="12" fill="#141d28" stroke="#5af78e"/>
+    <text x="590" y="50" fill="#5af78e" font-size="15" font-weight="700">Servidor (sshd)</text>
+    <text x="590" y="85" fill="#d6e2ee" font-size="12">~ansible/.ssh/</text>
+    <text x="590" y="104" fill="#d6e2ee" font-size="12">  authorized_keys</text>
+    <text x="590" y="123" fill="#5af78e" font-size="11">  └ contiene la .pub</text>
+    <text x="590" y="160" fill="#8197ab" font-size="11">.ssh → 700</text>
+    <text x="590" y="178" fill="#8197ab" font-size="11">authorized_keys → 600</text>
+    <g font-size="12">
+      <line x1="255" y1="75" x2="560" y2="75" stroke="#5af78e" stroke-dasharray="5 4"/>
+      <text x="290" y="68" fill="#5af78e">0. ssh-copy-id (una sola vez)</text>
+      <line x1="255" y1="130" x2="560" y2="130" stroke="#f3f99d"/><polygon points="560,125 570,130 560,135" fill="#f3f99d"/>
+      <text x="290" y="123" fill="#f3f99d">1. "Soy root, tengo esta llave"</text>
+      <line x1="565" y1="175" x2="260" y2="175" stroke="#c792ea"/><polygon points="260,170 250,175 260,180" fill="#c792ea"/>
+      <text x="290" y="168" fill="#c792ea">2. Reto: firma estos datos</text>
+      <line x1="255" y1="220" x2="560" y2="220" stroke="#57c7ff"/><polygon points="560,215 570,220 560,225" fill="#57c7ff"/>
+      <text x="290" y="213" fill="#57c7ff">3. Firma hecha con la PRIVADA</text>
+      <text x="290" y="262" fill="#5af78e">4. Verifica con la .pub → acceso ✓</text>
+    </g>
+  </svg>
+  <figcaption>La llave privada nunca viaja por la red. Solo viaja una firma.</figcaption>
+  </figure>
+
+  <h3>Paso a paso en la VM</h3>
+  <ol class="steps">
+    <li>Crear el usuario que hará de “servidor remoto” y darle un nombre de host:
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> useradd ansible
+<span class="p">#</span> passwd ansible
+<span class="p">#</span> echo "127.0.0.1   nodo1" &gt;&gt; /etc/hosts
+<span class="p">#</span> getent hosts nodo1</pre></div></li>
+
+    <li><b>Primero sin llaves</b> (que vean el “antes”). Aparecen dos cosas: la huella del host y la contraseña.
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> ssh ansible@nodo1
+<span class="w">The authenticity of host 'nodo1 (127.0.0.1)' can't be established.
+ED25519 key fingerprint is SHA256:....
+Are you sure you want to continue connecting (yes/no)?</span> yes
+ansible@nodo1's password: <span class="c">← todavía pide contraseña</span>
+<span class="p">$</span> exit
+<span class="p">#</span> cat ~/.ssh/known_hosts   <span class="c"># aquí quedó la huella del SERVIDOR</span></pre></div>
+    <div class="call note"><b class="h">Dos llaves distintas, no confundir</b><code class="i">known_hosts</code> guarda la llave del <b>servidor</b> (protege al cliente de un impostor / MITM). <code class="i">authorized_keys</code> guarda la llave del <b>usuario</b> (protege al servidor de accesos no autorizados).</div></li>
+
+    <li>Generar el par de llaves del nodo de control:
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> ssh-keygen -t ed25519 -C "root@control"
+<span class="c"># Enter, Enter (sin passphrase para el lab; en producción usa passphrase + ssh-agent)</span>
+<span class="p">#</span> ls -l ~/.ssh/
+<span class="o">-rw-------.</span> 1 root root  411 id_ed25519       <span class="c">← privada 600</span>
+<span class="o">-rw-r--r--.</span> 1 root root   94 id_ed25519.pub   <span class="c">← pública 644</span>
+<span class="p">#</span> cat ~/.ssh/id_ed25519.pub</pre></div></li>
+
+    <li>Copiar la pública al servidor y probar:
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> ssh-copy-id ansible@nodo1          <span class="c"># última vez que pide contraseña</span>
+<span class="p">#</span> ssh ansible@nodo1                  <span class="c"># entra directo ✓</span>
+<span class="p">$</span> ls -ld ~/.ssh; ls -l ~/.ssh/authorized_keys
+<span class="p">$</span> cat ~/.ssh/authorized_keys          <span class="c"># es la misma .pub de root</span>
+<span class="p">$</span> exit</pre></div>
+    <p>Lo que hace <code class="i">ssh-copy-id</code> “a mano”: crear <code class="i">~/.ssh</code> con 700, anexar la .pub en <code class="i">authorized_keys</code> con 600 (y en RHEL, contexto SELinux correcto).</p></li>
+
+    <li>Ejecutar comandos remotos sin entrar a una shell interactiva:
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> ssh ansible@nodo1 'hostname; whoami; uptime'
+<span class="p">#</span> for h in nodo1 nodo1 nodo1; do ssh ansible@$h 'date'; done   <span class="c"># "50 servidores" con un for…</span></pre></div></li>
+  </ol>
+
+  <div class="call fail"><b class="h">Falla en vivo: permisos de ~/.ssh</b>
+  sshd tiene <code class="i">StrictModes yes</code>: si los permisos son demasiado abiertos, <b>ignora la llave en silencio</b> y regresa a pedir contraseña.
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">romper → diagnosticar → arreglar</span><button>copiar</button></div><pre><span class="p">#</span> chmod 777 /home/ansible/.ssh
+<span class="p">#</span> ssh ansible@nodo1                <span class="r">← vuelve a pedir contraseña (Ctrl+C)</span>
+<span class="p">#</span> ssh -v ansible@nodo1 2&gt;&amp;1 | grep -i -E "offering|authentications"
+<span class="p">#</span> journalctl -u sshd -n 10 --no-pager
+<span class="r">Authentication refused: bad ownership or modes for directory /home/ansible/.ssh</span>
+<span class="p">#</span> chmod 700 /home/ansible/.ssh
+<span class="p">#</span> chmod 600 /home/ansible/.ssh/authorized_keys
+<span class="p">#</span> ssh ansible@nodo1 hostname       <span class="p">← funciona otra vez</span></pre></div>
+  Lección: el cliente no te dice por qué falló; <b>el log del servidor sí</b>.</div>
+</section>
+
+<!-- 02 COPIAR -->
+<section id="copiar">
+  <span class="tag">02 · Transferencia</span>
+  <h2>Copiar archivos de un punto a otro</h2>
+  <p>Las mismas llaves sirven para mover archivos. Tres herramientas, tres usos:</p>
+  <div class="grid">
+    <div class="card"><span class="ico">scp</span><h4>Copia simple</h4><p>Rápido para un archivo o carpeta. Copia todo cada vez.</p></div>
+    <div class="card"><span class="ico">rsync</span><h4>Sincronización</h4><p>Solo transfiere diferencias. Ideal para respaldos y despliegues repetidos.</p></div>
+    <div class="card"><span class="ico">sftp</span><h4>Sesión interactiva</h4><p>Navegar, put/get. Lo usan clientes gráficos (WinSCP, FileZilla).</p></div>
+  </div>
+
+  <h3>scp: origen → destino</h3>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="c"># Local → remoto</span>
+<span class="p">#</span> echo "Reporte de aves - $(date)" &gt; /root/reporte.txt
+<span class="p">#</span> scp /root/reporte.txt ansible@nodo1:/home/ansible/
+
+<span class="c"># Remoto → local</span>
+<span class="p">#</span> scp ansible@nodo1:/etc/os-release /tmp/os-release-nodo1
+
+<span class="c"># Carpeta completa (-r)</span>
+<span class="p">#</span> mkdir -p /root/sitio &amp;&amp; for i in 1 2 3; do echo "pagina $i" &gt; /root/sitio/p$i.html; done
+<span class="p">#</span> scp -r /root/sitio ansible@nodo1:~
+<span class="p">#</span> ssh ansible@nodo1 'ls -l ~/sitio ~/reporte.txt'</pre></div>
+
+  <h3>rsync: solo lo que cambió</h3>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> dnf install -y rsync               <span class="c"># debe existir en ambos extremos (aquí es la misma VM)</span>
+<span class="p">#</span> rsync -avz /root/sitio/ ansible@nodo1:/home/ansible/respaldo/
+<span class="p">#</span> rsync -avz /root/sitio/ ansible@nodo1:/home/ansible/respaldo/   <span class="c"># 2a vez: no transfiere nada</span>
+<span class="p">#</span> echo "nueva" &gt; /root/sitio/p4.html
+<span class="p">#</span> rsync -avz /root/sitio/ ansible@nodo1:/home/ansible/respaldo/   <span class="c"># solo p4.html</span>
+<span class="p">#</span> rm /root/sitio/p1.html
+<span class="p">#</span> rsync -avz --delete --dry-run /root/sitio/ ansible@nodo1:/home/ansible/respaldo/  <span class="c"># qué borraría</span></pre></div>
+  <div class="call fail"><b class="h">Trampa clásica: la diagonal final</b>
+  <code class="i">rsync -a /root/sitio/ destino/</code> copia el <b>contenido</b> de sitio.<br>
+  <code class="i">rsync -a /root/sitio destino/</code> copia la <b>carpeta</b> → termina en <code class="i">destino/sitio/</code>. Pruébenlo ambos y comparen con <code class="i">tree</code> o <code class="i">ls -R</code>.</div>
+  <div class="call ask"><b class="h">Puente hacia Ansible</b>“Correrlo dos veces y que la segunda no haga nada” tiene nombre: <b>idempotencia</b>. Es la idea central de lo que sigue.</div>
+
+  <h3>sftp: modo interactivo</h3>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> sftp ansible@nodo1
+sftp&gt; pwd ; ls
+sftp&gt; get reporte.txt /tmp/reporte-bajado.txt
+sftp&gt; put /etc/hostname
+sftp&gt; bye</pre></div>
+</section>
+
+<hr>
+
+<!-- 03 POR QUE -->
+<section id="porque">
+  <span class="tag">03 · Motivación</span>
+  <h2>¿Por qué Ansible y no un script de bash?</h2>
+  <div class="call fail"><b class="h">Primero el problema: un script “ingenuo”</b>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">configura.sh</span><button>copiar</button></div><pre>#!/bin/bash
+for h in nodo1; do
+  ssh ansible@$h 'echo "zona=aves" &gt;&gt; ~/config.txt'
+done</pre></div>
+  Ejecútenlo 3 veces y revisen <code class="i">~ansible/config.txt</code>: tres líneas repetidas. El script describe <b>acciones</b>, no el <b>estado</b> que queremos. Además: no reporta qué cambió, no maneja errores por host y hay que “saber bash” para leerlo.</div>
+
+  <div class="grid">
+    <div class="card"><span class="ico">⟳</span><h4>Idempotente</h4><p>Describes el estado deseado; si ya está así, no toca nada (<span style="color:var(--green)">ok</span> vs <span style="color:var(--yellow)">changed</span>).</p></div>
+    <div class="card"><span class="ico">⇢</span><h4>Sin agente</h4><p>Solo necesita SSH y Python en el nodo. Nada que instalar ni mantener en los servidores.</p></div>
+    <div class="card"><span class="ico">≡</span><h4>Declarativo y legible</h4><p>YAML que entiende un sysadmin, un dev o un auditor. El playbook es documentación.</p></div>
+    <div class="card"><span class="ico">▦</span><h4>Inventario</h4><p>Grupos de hosts (web, db, prod…). El mismo playbook sirve para 1 o 500 servidores.</p></div>
+    <div class="card"><span class="ico">⧉</span><h4>Módulos</h4><p>Miles de módulos: paquetes, usuarios, archivos, servicios, nubes, red, VMware, Kubernetes.</p></div>
+    <div class="card"><span class="ico">✓</span><h4>Seguro de probar</h4><p><code class="i">--check --diff</code> muestra qué cambiaría sin aplicarlo.</p></div>
+    <div class="card"><span class="ico">⎇</span><h4>Infraestructura como código</h4><p>Los playbooks van a Git: revisión, historial, rollback, CI/CD.</p></div>
+    <div class="card"><span class="ico">⇶</span><h4>Paralelo</h4><p>Ejecuta en varios hosts a la vez (<code class="i">forks</code>, 5 por defecto).</p></div>
+  </div>
+
+  <h3>Vocabulario mínimo</h3>
+  <div class="tbl"><table>
+    <tr><th>Término</th><th>Qué es</th><th>En nuestro lab</th></tr>
+    <tr><td>Nodo de control</td><td>Donde se instala y ejecuta Ansible</td><td>root en la VM</td></tr>
+    <tr><td>Nodo administrado</td><td>Servidor que se configura (vía SSH)</td><td>ansible@nodo1</td></tr>
+    <tr><td>Inventario</td><td>Lista de hosts y grupos</td><td>inventario.ini</td></tr>
+    <tr><td>Módulo</td><td>Unidad de trabajo (dnf, user, copy…)</td><td>ansible.builtin.*</td></tr>
+    <tr><td>Tarea</td><td>Una llamada a un módulo con parámetros</td><td>“Instalar httpd”</td></tr>
+    <tr><td>Play / Playbook</td><td>Lista de tareas aplicada a un grupo / archivo YAML con plays</td><td>web.yml</td></tr>
+    <tr><td>Handler</td><td>Tarea que corre solo si otra notificó un cambio</td><td>reiniciar httpd</td></tr>
+    <tr><td>Facts</td><td>Datos que Ansible descubre del host</td><td>ansible_facts['distribution']</td></tr>
+    <tr><td>become</td><td>Escalar privilegios (sudo)</td><td>-b / become: true</td></tr>
+  </table></div>
+</section>
+
+<!-- 04 SETUP -->
+<section id="setup">
+  <span class="tag">04 · Preparación</span>
+  <h2>Instalación, inventario y ansible.cfg</h2>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> dnf install -y ansible-core          <span class="c"># viene en AppStream de Rocky 9</span>
+<span class="p">#</span> ansible --version
+<span class="p">#</span> mkdir -p /root/devops2026/ansible &amp;&amp; cd /root/devops2026/ansible</pre></div>
+  <div class="call note"><b class="h">ansible-core vs ansible</b><code class="i">ansible-core</code> trae el motor y la colección <code class="i">ansible.builtin</code>. Módulos como <code class="i">ansible.posix.firewalld</code> o <code class="i">community.general.*</code> requieren instalar la colección (<code class="i">ansible-galaxy collection install ansible.posix</code>). En esta clase usamos solo <code class="i">ansible.builtin</code>.</div>
+
+  <div class="tabs">
+    <div class="tb"><button class="on">inventario.ini</button><button>ansible.cfg</button><button>verificar</button></div>
+    <div class="pane on">
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">inventario.ini</span><button>copiar</button></div><pre><span class="k">[web]</span>
+nodo1  <span class="o">ansible_host</span>=127.0.0.1
+
+<span class="k">[zoologico:children]</span>
+web</pre></div>
+    <p>Grupos con <code class="i">[nombre]</code>; grupos de grupos con <code class="i">:children</code>. Siempre existe el grupo implícito <code class="i">all</code>.</p>
+    </div>
+    <div class="pane">
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">ansible.cfg</span><button>copiar</button></div><pre><span class="k">[defaults]</span>
+<span class="o">inventory</span>   = ./inventario.ini
+<span class="o">remote_user</span> = ansible
+<span class="o">forks</span>       = 5</pre></div>
+    <p>Ansible busca la configuración en este orden: <code class="i">$ANSIBLE_CONFIG</code> → <code class="i">./ansible.cfg</code> → <code class="i">~/.ansible.cfg</code> → <code class="i">/etc/ansible/ansible.cfg</code>. Por eso trabajamos dentro del directorio del proyecto.</p>
+    </div>
+    <div class="pane">
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> ansible --version | grep "config file"
+<span class="p">#</span> ansible-inventory --graph
+<span class="p">#</span> ansible-inventory --list
+<span class="p">#</span> ansible all --list-hosts</pre></div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 ADHOC -->
+<section id="adhoc">
+  <span class="tag">05 · Actividades básicas</span>
+  <h2>Comandos ad-hoc</h2>
+  <p>Sintaxis: <code class="i">ansible &lt;hosts&gt; -m &lt;módulo&gt; -a "&lt;argumentos&gt;" [-b]</code>. Útiles para tareas rápidas y para entender los módulos antes de escribir playbooks.</p>
+
+  <ol class="steps">
+    <li><b>Conectividad.</b> <code class="i">ping</code> no es ICMP: prueba SSH + Python en el nodo.
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">actividad 1</span><button>copiar</button></div><pre><span class="p">#</span> ansible all -m ansible.builtin.ping
+<span class="p">nodo1 | SUCCESS =&gt; { "changed": false, "ping": "pong" }</span></pre></div></li>
+
+    <li><b>Facts.</b> Lo que Ansible sabe del host sin que se lo digas.
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">actividad 2</span><button>copiar</button></div><pre><span class="p">#</span> ansible nodo1 -m ansible.builtin.setup -a "filter=ansible_distribution*"
+<span class="p">#</span> ansible nodo1 -m ansible.builtin.setup -a "filter=ansible_memtotal_mb"
+<span class="p">#</span> ansible nodo1 -m ansible.builtin.command -a "df -h /"</pre></div></li>
+
+    <li><b>Instalar un paquete — falla primero.</b>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">actividad 3</span><button>copiar</button></div><pre><span class="p">#</span> ansible web -m ansible.builtin.dnf -a "name=tree state=present"
+<span class="r">nodo1 | FAILED! =&gt; ... "This command has to be run under the root user."</span>
+<span class="p">#</span> ansible web -b -m ansible.builtin.dnf -a "name=tree state=present"
+<span class="r">nodo1 | FAILED! =&gt; ... "Missing sudo password"</span></pre></div>
+    El usuario <code class="i">ansible</code> no es root ni tiene sudo. Lo arreglamos <b>en el nodo administrado</b>:
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> echo 'ansible ALL=(ALL) NOPASSWD: ALL' &gt; /etc/sudoers.d/ansible
+<span class="p">#</span> chmod 0440 /etc/sudoers.d/ansible
+<span class="p">#</span> visudo -cf /etc/sudoers.d/ansible     <span class="c"># valida sintaxis: un sudoers roto te deja sin sudo</span>
+<span class="p">#</span> ansible web -b -m ansible.builtin.dnf -a "name=tree state=present"
+<span class="w">nodo1 | CHANGED =&gt; ...</span>
+<span class="p">#</span> ansible web -b -m ansible.builtin.dnf -a "name=tree state=present"
+<span class="p">nodo1 | SUCCESS =&gt; { "changed": false ... }</span>   <span class="c">← idempotencia</span></pre></div></li>
+
+    <li><b>Idempotencia: shell vs módulo.</b> Ejecuten cada uno 3 veces y comparen el color y el archivo.
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">actividad 4</span><button>copiar</button></div><pre><span class="c"># NO idempotente: siempre CHANGED, duplica líneas</span>
+<span class="p">#</span> ansible web -m ansible.builtin.shell -a "echo 'zona=aves' &gt;&gt; ~/notas.txt"
+
+<span class="c"># Idempotente: describe el estado "esta línea existe"</span>
+<span class="p">#</span> ansible web -m ansible.builtin.lineinfile -a "path=/home/ansible/notas2.txt line='zona=aves' create=true"
+
+<span class="p">#</span> ssh ansible@nodo1 'cat ~/notas.txt; echo ---; cat ~/notas2.txt'</pre></div>
+    <div class="call note"><b class="h">Regla práctica</b><code class="i">command</code>/<code class="i">shell</code> son el último recurso: Ansible no sabe si cambiaron algo. Si existe un módulo, úsalo.</div></li>
+
+    <li><b>Archivos, usuarios y servicios.</b>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">actividad 5</span><button>copiar</button></div><pre><span class="p">#</span> ansible web -m ansible.builtin.copy -a "src=/root/reporte.txt dest=/home/ansible/reporte-ansible.txt mode=0640"
+<span class="p">#</span> ansible web -b -m ansible.builtin.file -a "path=/opt/zoologico state=directory mode=0755"
+<span class="p">#</span> ansible web -b -m ansible.builtin.user -a "name=koala comment='Cuidador koalas'"
+<span class="p">#</span> ansible web -b -m ansible.builtin.user -a "name=koala state=absent remove=true"
+<span class="p">#</span> ansible web -b -m ansible.builtin.service -a "name=sshd state=started enabled=true"</pre></div></li>
+
+    <li><b>La documentación vive en la terminal.</b>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">actividad 6</span><button>copiar</button></div><pre><span class="p">#</span> ansible-doc -l | wc -l
+<span class="p">#</span> ansible-doc ansible.builtin.user          <span class="c"># ir a EXAMPLES con /EXAMPLES</span>
+<span class="p">#</span> ansible-doc -s ansible.builtin.lineinfile  <span class="c"># resumen de parámetros</span></pre></div></li>
+  </ol>
+</section>
+
+<!-- 06 PLAYBOOKS -->
+<section id="playbooks">
+  <span class="tag">06 · Automatización real</span>
+  <h2>Playbooks</h2>
+  <p>Un playbook es el ad-hoc convertido en código: versionable, repetible y legible.</p>
+
+  <h3>Playbook 1 · usuarios con loop</h3>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">usuarios.yml</span><button>copiar</button></div><pre>---
+- <span class="o">name:</span> Cuidadores del zoológico
+  <span class="o">hosts:</span> web
+  <span class="o">become:</span> <span class="k">true</span>
+  <span class="o">vars:</span>
+    <span class="o">cuidadores:</span>
+      - koala
+      - panda
+      - lince
+  <span class="o">tasks:</span>
+    - <span class="o">name:</span> Crear grupo cuidadores
+      <span class="k">ansible.builtin.group:</span>
+        <span class="o">name:</span> cuidadores
+        <span class="o">state:</span> present
+
+    - <span class="o">name:</span> Crear usuarios
+      <span class="k">ansible.builtin.user:</span>
+        <span class="o">name:</span> <span class="s">"{{ item }}"</span>
+        <span class="o">groups:</span> cuidadores
+        <span class="o">append:</span> <span class="k">true</span>
+        <span class="o">shell:</span> /bin/bash
+      <span class="o">loop:</span> <span class="s">"{{ cuidadores }}"</span>
+
+    - <span class="o">name:</span> Directorio compartido
+      <span class="k">ansible.builtin.file:</span>
+        <span class="o">path:</span> /opt/zoologico
+        <span class="o">state:</span> directory
+        <span class="o">group:</span> cuidadores
+        <span class="o">mode:</span> <span class="s">"2770"</span></pre></div>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> ansible-playbook usuarios.yml --syntax-check
+<span class="p">#</span> ansible-playbook usuarios.yml
+<span class="p">#</span> ansible-playbook usuarios.yml        <span class="c"># PLAY RECAP → changed=0</span>
+<span class="p">#</span> id panda; ls -ld /opt/zoologico</pre></div>
+  <div class="call ask"><b class="h">Conexión con clases anteriores</b>El modo <code class="i">2770</code> es el bit SGID que vimos en permisos: los archivos creados heredan el grupo <code class="i">cuidadores</code>. Ansible no inventa nada nuevo: automatiza lo que ya saben hacer.</div>
+
+  <h3>Playbook 2 · servidor web con template y handler</h3>
+  <div class="tabs">
+    <div class="tb"><button class="on">web.yml</button><button>index.html.j2</button></div>
+    <div class="pane on">
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">web.yml</span><button>copiar</button></div><pre>---
+- <span class="o">name:</span> Sitio del zoológico
+  <span class="o">hosts:</span> web
+  <span class="o">become:</span> <span class="k">true</span>
+  <span class="o">vars:</span>
+    <span class="o">titulo:</span> <span class="s">"Zoológico DevOps 2026"</span>
+  <span class="o">tasks:</span>
+    - <span class="o">name:</span> Instalar httpd
+      <span class="k">ansible.builtin.dnf:</span>
+        <span class="o">name:</span> httpd
+        <span class="o">state:</span> present
+
+    - <span class="o">name:</span> Publicar index.html desde plantilla
+      <span class="k">ansible.builtin.template:</span>
+        <span class="o">src:</span> index.html.j2
+        <span class="o">dest:</span> /var/www/html/index.html
+        <span class="o">owner:</span> root
+        <span class="o">group:</span> root
+        <span class="o">mode:</span> <span class="s">"0644"</span>
+      <span class="o">notify:</span> Reiniciar httpd
+
+    - <span class="o">name:</span> httpd iniciado y habilitado
+      <span class="k">ansible.builtin.service:</span>
+        <span class="o">name:</span> httpd
+        <span class="o">state:</span> started
+        <span class="o">enabled:</span> <span class="k">true</span>
+
+  <span class="o">handlers:</span>
+    - <span class="o">name:</span> Reiniciar httpd
+      <span class="k">ansible.builtin.service:</span>
+        <span class="o">name:</span> httpd
+        <span class="o">state:</span> restarted</pre></div>
+    </div>
+    <div class="pane">
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">index.html.j2 (Jinja2)</span><button>copiar</button></div><pre>&lt;html&gt;
+  &lt;body style="font-family:monospace;background:#111;color:#5af78e"&gt;
+    &lt;h1&gt;<span class="s">{{ titulo }}</span>&lt;/h1&gt;
+    &lt;p&gt;Servidor: <span class="s">{{ ansible_facts['hostname'] }}</span>&lt;/p&gt;
+    &lt;p&gt;SO: <span class="s">{{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}</span>&lt;/p&gt;
+    &lt;p&gt;Memoria: <span class="s">{{ ansible_facts['memtotal_mb'] }}</span> MB&lt;/p&gt;
+    &lt;p&gt;Desplegado por Ansible&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre></div>
+    </div>
+  </div>
+
+  <h3>Secuencia de ejecución para la demo</h3>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> ansible-playbook web.yml --check --diff   <span class="c"># 1. ¿qué haría? (no aplica nada)</span>
+<span class="p">#</span> ansible-playbook web.yml                  <span class="c"># 2. aplica: changed + handler corre</span>
+<span class="p">#</span> curl -s localhost
+<span class="p">#</span> ansible-playbook web.yml                  <span class="c"># 3. changed=0, el handler NO corre</span>
+<span class="p">#</span> ansible-playbook web.yml -e "titulo='Zoológico - turno vespertino'" --diff
+                                            <span class="c"># 4. solo cambia la plantilla → handler reinicia</span>
+<span class="p">#</span> curl -s localhost</pre></div>
+  <div class="call note"><b class="h">Si en la VM ya hay httpd de un lab anterior</b>El playbook sobrescribe <code class="i">/var/www/html/index.html</code>. Respáldenlo antes o cambien <code class="i">dest</code>.</div>
+  <div class="call ok"><b class="h">Lo que deben llevarse</b>
+  <ul class="check">
+    <li>Ansible <b>converge</b> el sistema al estado descrito y reporta qué cambió.</li>
+    <li>Handlers = reiniciar solo cuando hace falta.</li>
+    <li>Variables + facts + templates = un mismo playbook para muchos servidores distintos.</li>
+  </ul></div>
+
+  <h3>Reto rápido (10 min)</h3>
+  <p>Agregar al <code class="i">web.yml</code> una tarea que cree <code class="i">/var/www/html/salud.html</code> con el texto <code class="i">OK</code> usando <code class="i">ansible.builtin.copy</code> y el parámetro <code class="i">content</code>. Verificación:</p>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">verificación</span><button>copiar</button></div><pre><span class="p">#</span> curl -s localhost/salud.html
+<span class="p">#</span> ansible-playbook web.yml | grep -A2 "PLAY RECAP"    <span class="c"># 2a corrida: changed=0</span></pre></div>
+</section>
+
+<hr>
+
+<!-- 07 K8S PARA QUE -->
+<section id="k8s-para">
+  <span class="tag">07 · Orquestación</span>
+  <h2>¿Para qué sirve Kubernetes?</h2>
+  <p>Con Podman ya saben empaquetar y correr una aplicación en un contenedor. El problema aparece cuando tienes <b>muchos contenedores, en muchos servidores, que deben estar siempre arriba</b>. Kubernetes es un <b>orquestador</b>: tú declaras <i>qué</i> quieres (“3 réplicas de esta imagen, expuestas en el puerto 80”) y él decide <i>dónde</i> y se encarga de <i>mantenerlo</i> así.</p>
+
+  <div class="call ask"><b class="h">El puente conceptual con Ansible</b>
+  Ambos son <b>declarativos</b>: describes el estado deseado.<br>
+  · <b>Ansible</b> lleva el sistema a ese estado <b>cuando tú ejecutas</b> el playbook.<br>
+  · <b>Kubernetes</b> lo compara <b>continuamente</b> (ciclo de reconciliación): si algo se desvía —un pod muere, un nodo cae— lo corrige solo, sin que nadie ejecute nada.</div>
+
+  <figure class="fig">
+  <svg viewBox="0 0 820 200" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+    <rect x="30" y="60" width="210" height="80" rx="10" fill="#141d28" stroke="#57c7ff"/>
+    <text x="135" y="92" text-anchor="middle" fill="#57c7ff" font-size="14" font-weight="700">Estado deseado</text>
+    <text x="135" y="116" text-anchor="middle" fill="#d6e2ee" font-size="12">replicas: 3 (YAML)</text>
+    <rect x="305" y="60" width="210" height="80" rx="10" fill="#141d28" stroke="#c792ea"/>
+    <text x="410" y="92" text-anchor="middle" fill="#c792ea" font-size="14" font-weight="700">Controlador</text>
+    <text x="410" y="116" text-anchor="middle" fill="#d6e2ee" font-size="12">compara y actúa</text>
+    <rect x="580" y="60" width="210" height="80" rx="10" fill="#141d28" stroke="#ff6b6b"/>
+    <text x="685" y="92" text-anchor="middle" fill="#ff6b6b" font-size="14" font-weight="700">Estado actual</text>
+    <text x="685" y="116" text-anchor="middle" fill="#d6e2ee" font-size="12">2 pods vivos</text>
+    <line x1="240" y1="100" x2="298" y2="100" stroke="#57c7ff" stroke-width="2"/><polygon points="298,95 306,100 298,105" fill="#57c7ff"/>
+    <line x1="580" y1="100" x2="522" y2="100" stroke="#ff6b6b" stroke-width="2"/><polygon points="522,95 514,100 522,105" fill="#ff6b6b"/>
+    <path d="M410 140 Q410 185 685 185 Q740 185 700 145" fill="none" stroke="#5af78e" stroke-width="2" stroke-dasharray="6 4"/>
+    <polygon points="694,150 702,141 708,152" fill="#5af78e"/>
+    <text x="470" y="178" fill="#5af78e" font-size="12">crea 1 pod → 3/3 ✓ (y repite para siempre)</text>
+    <text x="410" y="40" text-anchor="middle" fill="#8197ab" font-size="12">bucle de reconciliación</text>
+  </svg>
+  </figure>
+
+  <div class="grid">
+    <div class="card"><span class="ico">⟲</span><h4>Auto-reparación</h4><p>Reinicia contenedores caídos y reprograma pods si un nodo muere.</p></div>
+    <div class="card"><span class="ico">⇅</span><h4>Escalamiento</h4><p>Más réplicas con un comando o automáticamente por CPU/memoria (HPA).</p></div>
+    <div class="card"><span class="ico">⇄</span><h4>Descubrimiento y balanceo</h4><p>Un Service da IP y nombre DNS estables frente a pods que van y vienen.</p></div>
+    <div class="card"><span class="ico">↻</span><h4>Despliegues sin downtime</h4><p>Rolling updates y rollback a la versión anterior.</p></div>
+    <div class="card"><span class="ico">⚙</span><h4>Config y secretos</h4><p>ConfigMaps y Secrets separados de la imagen.</p></div>
+    <div class="card"><span class="ico">▤</span><h4>Almacenamiento</h4><p>PV/PVC y StorageClass: el pod pide disco, el clúster lo provee (NFS, CSI…).</p></div>
+  </div>
+</section>
+
+<!-- 08 ARQUITECTURA -->
+<section id="k8s-arq">
+  <span class="tag">08 · Arquitectura</span>
+  <h2>Componentes de un clúster</h2>
+  <figure class="fig">
+  <svg viewBox="0 0 860 470" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+    <!-- user -->
+    <rect x="20" y="30" width="150" height="60" rx="10" fill="#0b0f14" stroke="#f3f99d"/>
+    <text x="95" y="56" text-anchor="middle" fill="#f3f99d" font-size="13" font-weight="700">kubectl</text>
+    <text x="95" y="75" text-anchor="middle" fill="#8197ab" font-size="11">tú / CI-CD</text>
+    <!-- control plane -->
+    <rect x="210" y="10" width="630" height="190" rx="14" fill="#141d28" stroke="#57c7ff"/>
+    <text x="230" y="36" fill="#57c7ff" font-size="14" font-weight="700">CONTROL PLANE (master)</text>
+    <rect x="230" y="55" width="190" height="60" rx="8" fill="#0b0f14" stroke="#57c7ff"/>
+    <text x="325" y="80" text-anchor="middle" fill="#fff" font-size="13">kube-apiserver</text>
+    <text x="325" y="99" text-anchor="middle" fill="#8197ab" font-size="10">puerta única · REST · auth</text>
+    <rect x="440" y="55" width="180" height="60" rx="8" fill="#0b0f14" stroke="#ffb86c"/>
+    <text x="530" y="80" text-anchor="middle" fill="#fff" font-size="13">etcd</text>
+    <text x="530" y="99" text-anchor="middle" fill="#8197ab" font-size="10">BD clave-valor · el estado</text>
+    <rect x="640" y="55" width="180" height="60" rx="8" fill="#0b0f14" stroke="#c792ea"/>
+    <text x="730" y="80" text-anchor="middle" fill="#fff" font-size="13">kube-scheduler</text>
+    <text x="730" y="99" text-anchor="middle" fill="#8197ab" font-size="10">elige nodo para cada pod</text>
+    <rect x="230" y="130" width="390" height="55" rx="8" fill="#0b0f14" stroke="#c792ea"/>
+    <text x="425" y="154" text-anchor="middle" fill="#fff" font-size="13">kube-controller-manager</text>
+    <text x="425" y="172" text-anchor="middle" fill="#8197ab" font-size="10">Deployment, ReplicaSet, Node… bucles de reconciliación</text>
+    <rect x="640" y="130" width="180" height="55" rx="8" fill="#0b0f14" stroke="#223040" stroke-dasharray="4 3"/>
+    <text x="730" y="154" text-anchor="middle" fill="#8197ab" font-size="12">cloud-controller</text>
+    <text x="730" y="172" text-anchor="middle" fill="#8197ab" font-size="10">(solo en nube)</text>
+    <line x1="170" y1="60" x2="226" y2="80" stroke="#f3f99d" stroke-width="2"/>
+    <line x1="420" y1="85" x2="440" y2="85" stroke="#ffb86c" stroke-width="2"/>
+    <!-- workers -->
+    <g>
+      <rect x="40" y="250" width="380" height="200" rx="14" fill="#141d28" stroke="#5af78e"/>
+      <text x="60" y="276" fill="#5af78e" font-size="14" font-weight="700">WORKER 1</text>
+      <rect x="60" y="292" width="160" height="44" rx="7" fill="#0b0f14" stroke="#5af78e"/>
+      <text x="140" y="312" text-anchor="middle" fill="#fff" font-size="12">kubelet</text>
+      <text x="140" y="328" text-anchor="middle" fill="#8197ab" font-size="10">agente del nodo</text>
+      <rect x="240" y="292" width="160" height="44" rx="7" fill="#0b0f14" stroke="#5af78e"/>
+      <text x="320" y="312" text-anchor="middle" fill="#fff" font-size="12">kube-proxy</text>
+      <text x="320" y="328" text-anchor="middle" fill="#8197ab" font-size="10">reglas de red Service</text>
+      <rect x="60" y="348" width="340" height="34" rx="7" fill="#0b0f14" stroke="#223040"/>
+      <text x="230" y="370" text-anchor="middle" fill="#d6e2ee" font-size="11">runtime CRI: containerd / CRI-O</text>
+      <rect x="60" y="394" width="100" height="42" rx="7" fill="#1d2a1f" stroke="#5af78e"/><text x="110" y="420" text-anchor="middle" fill="#5af78e" font-size="12">pod</text>
+      <rect x="180" y="394" width="100" height="42" rx="7" fill="#1d2a1f" stroke="#5af78e"/><text x="230" y="420" text-anchor="middle" fill="#5af78e" font-size="12">pod</text>
+    </g>
+    <g>
+      <rect x="450" y="250" width="380" height="200" rx="14" fill="#141d28" stroke="#5af78e"/>
+      <text x="470" y="276" fill="#5af78e" font-size="14" font-weight="700">WORKER 2</text>
+      <rect x="470" y="292" width="160" height="44" rx="7" fill="#0b0f14" stroke="#5af78e"/>
+      <text x="550" y="312" text-anchor="middle" fill="#fff" font-size="12">kubelet</text>
+      <text x="550" y="328" text-anchor="middle" fill="#8197ab" font-size="10">agente del nodo</text>
+      <rect x="650" y="292" width="160" height="44" rx="7" fill="#0b0f14" stroke="#5af78e"/>
+      <text x="730" y="312" text-anchor="middle" fill="#fff" font-size="12">kube-proxy</text>
+      <text x="730" y="328" text-anchor="middle" fill="#8197ab" font-size="10">reglas de red Service</text>
+      <rect x="470" y="348" width="340" height="34" rx="7" fill="#0b0f14" stroke="#223040"/>
+      <text x="640" y="370" text-anchor="middle" fill="#d6e2ee" font-size="11">runtime CRI: containerd / CRI-O</text>
+      <rect x="470" y="394" width="100" height="42" rx="7" fill="#1d2a1f" stroke="#5af78e"/><text x="520" y="420" text-anchor="middle" fill="#5af78e" font-size="12">pod</text>
+    </g>
+    <line x1="300" y1="200" x2="140" y2="290" stroke="#57c7ff" stroke-dasharray="5 4"/>
+    <line x1="350" y1="200" x2="550" y2="290" stroke="#57c7ff" stroke-dasharray="5 4"/>
+    <text x="360" y="232" fill="#8197ab" font-size="11">kubelet ⇄ apiserver (watch)</text>
+  </svg>
+  <figcaption>Todo pasa por el API server. Ningún componente habla directo con etcd excepto él.</figcaption>
+  </figure>
+
+  <div class="tbl"><table>
+    <tr><th>Componente</th><th>Dónde</th><th>Responsabilidad</th><th>Si falla…</th></tr>
+    <tr><td>kube-apiserver</td><td>Control plane</td><td>Recibe y valida todas las peticiones; único que escribe en etcd</td><td>No puedes administrar; lo que corre sigue corriendo</td></tr>
+    <tr><td>etcd</td><td>Control plane</td><td>Guarda el estado deseado y actual del clúster</td><td>Se pierde la “memoria” del clúster → respaldarlo</td></tr>
+    <tr><td>kube-scheduler</td><td>Control plane</td><td>Asigna pods a nodos según recursos, afinidad, taints</td><td>Pods nuevos quedan en Pending</td></tr>
+    <tr><td>controller-manager</td><td>Control plane</td><td>Bucles de reconciliación (réplicas, nodos, endpoints…)</td><td>Nadie corrige desviaciones</td></tr>
+    <tr><td>kubelet</td><td>Cada nodo</td><td>Recibe pods asignados y pide al runtime que los ejecute; reporta salud</td><td>El nodo pasa a NotReady</td></tr>
+    <tr><td>kube-proxy</td><td>Cada nodo</td><td>Traduce Services a reglas iptables/IPVS</td><td>Falla el acceso vía Service en ese nodo</td></tr>
+    <tr><td>Runtime (CRI)</td><td>Cada nodo</td><td>Descarga imágenes y corre contenedores</td><td>No arrancan contenedores</td></tr>
+    <tr><td>CNI / CoreDNS</td><td>Add-ons</td><td>Red entre pods de distintos nodos / resolución de nombres de Services</td><td>Pods aislados o sin DNS</td></tr>
+  </table></div>
+
+  <h3>Objetos básicos (lo que escribirás en YAML)</h3>
+  <div class="grid">
+    <div class="card"><h4>Pod</h4><p>Unidad mínima: 1+ contenedores que comparten red y volúmenes. Igual que un pod de Podman.</p></div>
+    <div class="card"><h4>Deployment</h4><p>Mantiene N réplicas de un pod y gestiona actualizaciones.</p></div>
+    <div class="card"><h4>Service</h4><p>IP/DNS estable y balanceo hacia los pods (ClusterIP, NodePort, LoadBalancer).</p></div>
+    <div class="card"><h4>Namespace</h4><p>Separación lógica: equipos, ambientes, cuotas.</p></div>
+  </div>
+
+  <h3>Qué pasa con <code class="i">kubectl create deployment web --image=nginx --replicas=3</code></h3>
+  <ol class="steps">
+    <li>kubectl envía la petición al <b>API server</b>, que autentica, valida y guarda el Deployment en <b>etcd</b>.</li>
+    <li>El <b>controller de Deployment</b> crea un ReplicaSet; el de ReplicaSet crea 3 objetos Pod (aún sin nodo).</li>
+    <li>El <b>scheduler</b> ve pods sin asignar y escoge un nodo para cada uno.</li>
+    <li>El <b>kubelet</b> de cada nodo ve “tengo un pod nuevo”, le pide al <b>runtime</b> descargar la imagen y arrancarlo.</li>
+    <li>El kubelet reporta el estado → API server → etcd. <code class="i">kubectl get pods</code> muestra Running.</li>
+  </ol>
+</section>
+
+<!-- 09 VS -->
+<section id="vs">
+  <span class="tag">09 · Comparativa</span>
+  <h2>Solo contenedores (Podman/Docker) vs Kubernetes</h2>
+  <p>No compiten: Kubernetes <b>corre contenedores</b> con imágenes OCI, las mismas que construyen con un Containerfile. La diferencia es <b>quién los administra</b>.</p>
+
+  <div class="tbl"><table>
+    <tr><th>Aspecto</th><th>Podman / Docker</th><th>Kubernetes</th></tr>
+    <tr><td>Alcance</td><td>Un solo host</td><td>Clúster de N nodos como un solo recurso</td></tr>
+    <tr><td>Muere el contenedor</td><td>Política <code class="i">--restart</code> o unidad systemd (en ese host)</td><td>El controlador recrea el pod</td></tr>
+    <tr><td>Muere el servidor</td><td><span class="n">Todo lo de ese host se cae</span></td><td><span class="y">Los pods se reprograman en otros nodos</span></td></tr>
+    <tr><td>Escalar</td><td>Lanzar más contenedores a mano (y cambiar puertos)</td><td><code class="i">kubectl scale</code> o HPA automático</td></tr>
+    <tr><td>Red / descubrimiento</td><td>Redes locales del host, puertos publicados</td><td>Service con IP/DNS estable + balanceo entre nodos</td></tr>
+    <tr><td>Actualizar versión</td><td>Detener, borrar, correr la nueva → downtime</td><td>Rolling update + <code class="i">rollout undo</code></td></tr>
+    <tr><td>Modelo</td><td>Mayormente imperativo (<code class="i">podman run …</code>), Compose declarativo en un host</td><td>Declarativo con reconciliación continua</td></tr>
+    <tr><td>Configuración</td><td>Variables de entorno, volúmenes, <code class="i">podman secret</code></td><td>ConfigMap, Secret</td></tr>
+    <tr><td>Almacenamiento</td><td>Volúmenes/bind mounts locales</td><td>PV/PVC/StorageClass compartidos (NFS, CSI)</td></tr>
+    <tr><td>Arquitectura</td><td>Docker: daemon <code class="i">dockerd</code>. Podman: sin daemon, rootless posible</td><td>Control plane + kubelet + runtime CRI (containerd/CRI-O)</td></tr>
+    <tr><td>Complejidad</td><td><span class="y">Baja</span>: se aprende en un día</td><td><span class="n">Alta</span>: más componentes que operar</td></tr>
+    <tr><td>Ideal para</td><td>Desarrollo local, apps pequeñas, un servidor, edge</td><td>Producción con alta disponibilidad, microservicios, muchos equipos</td></tr>
+  </table></div>
+
+  <div class="call note"><b class="h">Precisión: Kubernetes ya no usa Docker como runtime</b>Desde Kubernetes 1.24 se retiró <i>dockershim</i>. Los nodos usan containerd o CRI-O. Las imágenes construidas con Docker o Podman siguen funcionando porque son <b>OCI</b>.</div>
+
+  <h3>Demo en la misma VM: “nadie lo vuelve a levantar”</h3>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9 — Podman</span><button>copiar</button></div><pre><span class="p">#</span> podman run -d --name web -p 8080:80 docker.io/library/nginx
+<span class="p">#</span> curl -sI localhost:8080 | head -1
+<span class="p">#</span> podman rm -f web                       <span class="c"># simula un fallo / error humano</span>
+<span class="p">#</span> curl -sI localhost:8080 | head -1      <span class="r">← nada. Nadie lo recrea.</span>
+
+<span class="c"># Ahora 3 copias: hay que inventar puertos y no hay balanceador</span>
+<span class="p">#</span> for i in 1 2 3; do podman run -d --name web$i -p 808$i:80 docker.io/library/nginx; done
+<span class="p">#</span> podman ps
+
+<span class="c"># Podman "habla" YAML de Kubernetes</span>
+<span class="p">#</span> podman kube generate web1 &gt; web1-pod.yaml
+<span class="p">#</span> less web1-pod.yaml                     <span class="c"># apiVersion: v1 · kind: Pod</span>
+<span class="p">#</span> podman rm -f web1 web2 web3</pre></div>
+  <p>Si el puerto 80/httpd del ejercicio de Ansible está ocupado, no hay conflicto: usamos 8080–8083.</p>
+
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">misma idea en el clúster (si está disponible)</span><button>copiar</button></div><pre><span class="p">$</span> kubectl create deployment web --image=nginx --replicas=3
+<span class="p">$</span> kubectl get pods -o wide                 <span class="c"># repartidos entre workers</span>
+<span class="p">$</span> kubectl delete pod &lt;uno-de-los-pods&gt;
+<span class="p">$</span> kubectl get pods -w                      <span class="p">← aparece uno nuevo solo</span>
+<span class="p">$</span> kubectl scale deployment web --replicas=5
+<span class="p">$</span> kubectl expose deployment web --port=80 --type=NodePort
+<span class="p">$</span> kubectl get svc web</pre></div>
+
+  <div class="call ask"><b class="h">Pregunta de discusión</b>Una tienda pequeña con una sola app y un servidor, ¿necesita Kubernetes? ¿Qué ganaría y qué le costaría? (Respuesta esperada: probablemente no; Podman + systemd/Quadlet y un respaldo resuelven el caso. Kubernetes se justifica cuando la disponibilidad y la escala pagan su complejidad.)</div>
+</section>
+
+<!-- 10 CIERRE -->
+<section id="cierre">
+  <span class="tag">10 · Cierre</span>
+  <h2>Repaso y puente a la siguiente clase</h2>
+  <div class="grid">
+    <div class="card"><h4>SSH</h4><p>Privada se queda, pública viaja a authorized_keys. Permisos 700/600 o sshd ignora la llave.</p></div>
+    <div class="card"><h4>Copiar</h4><p>scp copia todo, rsync solo diferencias (cuidado con la diagonal), sftp interactivo.</p></div>
+    <div class="card"><h4>Ansible</h4><p>Sin agente, sobre SSH, declarativo e idempotente. Módulos antes que shell.</p></div>
+    <div class="card"><h4>Kubernetes</h4><p>Orquestador declarativo que reconcilia de forma continua sobre un clúster.</p></div>
+  </div>
+
+  <h3>Preguntas rápidas de verificación</h3>
+  <div class="tbl"><table>
+    <tr><th>#</th><th>Pregunta</th><th>Respuesta</th></tr>
+    <tr><td>1</td><td>¿Qué archivo del servidor contiene tu llave pública?</td><td>~usuario/.ssh/authorized_keys</td></tr>
+    <tr><td>2</td><td>¿Qué protege known_hosts?</td><td>Al cliente: verifica la identidad del servidor</td></tr>
+    <tr><td>3</td><td>¿Por qué el módulo shell siempre marca changed?</td><td>Ansible no puede saber el efecto del comando</td></tr>
+    <tr><td>4</td><td>¿Cuándo corre un handler?</td><td>Al final del play, solo si una tarea que lo notifica reportó changed</td></tr>
+    <tr><td>5</td><td>¿Qué componente decide en qué nodo corre un pod?</td><td>kube-scheduler</td></tr>
+    <tr><td>6</td><td>¿Qué componente es la única puerta hacia etcd?</td><td>kube-apiserver</td></tr>
+    <tr><td>7</td><td>¿Qué pasa con tus contenedores de Podman si se apaga el host?</td><td>Se detienen; nadie los mueve a otro servidor</td></tr>
+  </table></div>
+
+  <h3>Limpieza del laboratorio</h3>
+<div class="code"><div class="bar"><i></i><i></i><i></i><span class="t">root@rocky9</span><button>copiar</button></div><pre><span class="p">#</span> cd /root/devops2026/ansible
+<span class="p">#</span> for u in koala panda lince; do ansible web -b -m ansible.builtin.user -a "name=$u state=absent remove=true"; done
+<span class="p">#</span> ansible web -b -m ansible.builtin.group -a "name=cuidadores state=absent"
+<span class="p">#</span> podman ps -a                            <span class="c"># confirmar que no quedaron contenedores de la demo</span></pre></div>
+  <div class="call ok"><b class="h">Tarea para la próxima clase</b>Escribir <code class="i">limpieza.yml</code> que deje la VM como estaba: usuarios <code class="i">koala/panda/lince</code> y grupo <code class="i">cuidadores</code> eliminados, <code class="i">/opt/zoologico</code> borrado (<code class="i">state: absent</code>). Debe dar <code class="i">changed=0</code> en la segunda corrida.</div>
+</section>
+</main>
+</div>
+
+<script>
+// Copiar bloques de código (sin prompts "# " / "$ " ni salidas comentadas)
+document.querySelectorAll('.code button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const pre=btn.closest('.code').querySelector('pre');
+    const txt=pre.innerText.split('\n').map(l=>l.replace(/^[#$] /,'')).join('\n');
+    const done=()=>{btn.textContent='copiado ✓';setTimeout(()=>btn.textContent='copiar',1400)};
+    if(navigator.clipboard){navigator.clipboard.writeText(txt).then(done,()=>{})}
+  });
+});
+// Pestañas
+document.querySelectorAll('.tabs').forEach(t=>{
+  const bs=t.querySelectorAll('.tb button'), ps=t.querySelectorAll('.pane');
+  bs.forEach((b,i)=>b.addEventListener('click',()=>{
+    bs.forEach(x=>x.classList.remove('on'));ps.forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');ps[i].classList.add('on');
+  }));
+});
+// Resaltar sección activa en el índice
+const links=[...document.querySelectorAll('nav a')];
+const obs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){
+    links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id));
+  }});
+},{rootMargin:'-30% 0px -60% 0px'});
+document.querySelectorAll('main section').forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

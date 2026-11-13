@@ -1,0 +1,39 @@
+---
+- name: Sitio del zoológico
+  hosts: web
+  become: true
+  vars:
+    titulo: "Zoológico DevOps 2026"
+  tasks:
+    - name: Instalar httpd
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+
+    - name: Publicar index.html desde plantilla
+      ansible.builtin.template:
+        src: templates/index.html.j2
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reiniciar httpd
+
+    - name: Crear pagina de salud (Reto de clase)
+      ansible.builtin.copy:
+        dest: /var/www/html/salud.html
+        content: "OK\n"
+        mode: "0644"
+
+    - name: httpd iniciado y habilitado
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Reiniciar httpd
+      ansible.builtin.service:
+        name: httpd
+        state: restarted
+

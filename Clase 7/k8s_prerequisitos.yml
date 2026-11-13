@@ -1,0 +1,166 @@
+---
+- name: Preparar nodo RHEL 9 / Rocky Linux 9 para Kubernetes
+  hosts: web
+  become: true
+  vars:
+    k8s_version: "v1.31"
+
+  tasks:
+    # =========================================================================
+    # 1. GESTIÓN DE SWAP
+    # =========================================================================
+    - name: 1.1 Desactivar Swap temporalmente en memoria
+      ansible.builtin.command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+      changed_when: true
+
+    - name: 1.2 Comentar la línea de Swap en /etc/fstab para que sea permanente
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '^(\s*[^#\s]+\s+[^#\s]+\s+swap\s+.*)$'
+        replace: '# \1'
+
+    # =========================================================================
+    # 2. CONFIGURACIÓN DE SELINUX
+    # =========================================================================
+    - name: 2.1 Configurar SELinux en modo permissive de forma persistente
+      ansible.builtin.lineinfile:
+        path: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: 'SELINUX=permissive'
+
+    - name: 2.2 Poner SELinux en modo permissive de inmediato
+      ansible.builtin.command: setenforce 0
+      register: setenforce_result
+      failed_when: false
+      changed_when: setenforce_result.rc == 0
+
+    # =========================================================================
+    # 3. GESTIÓN DE FIREWALL
+    # =========================================================================
+    - name: 3.1 Detener y deshabilitar firewalld para evitar bloqueos en el laboratorio
+      ansible.builtin.service:
+        name: firewalld
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    # =========================================================================
+    # 4. MÓDULOS DEL KERNEL
+    # =========================================================================
+    - name: 4.1 Configurar carga automática de módulos overlay y br_netfilter
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/k8s.conf
+        content: |
+          overlay
+          br_netfilter
+        mode: '0644'
+
+    - name: 4.2 Cargar módulo overlay en el kernel actual
+      ansible.builtin.command: modprobe overlay
+      changed_when: false
+
+    - name: 4.3 Cargar módulo br_netfilter en el kernel actual
+      ansible.builtin.command: modprobe br_netfilter
+      changed_when: false
+
+    # =========================================================================
+    # 5. PARÁMETROS SYSCTL DE RED
+    # =========================================================================
+    - name: 5.1 Configurar sysctl para filtrado de red y reenvío IPv4
+      ansible.builtin.copy:
+        dest: /etc/sysctl.d/k8s.conf
+        content: |
+          net.bridge.bridge-nf-call-iptables  = 1
+          net.bridge.bridge-nf-call-ip6tables = 1
+          net.ipv4.ip_forward                 = 1
+        mode: '0644'
+      notify: Aplicar parámetros sysctl
+
+    # =========================================================================
+    # 6. RUNTIME DE CONTENEDORES (containerd)
+    # =========================================================================
+    - name: 6.1 Instalar utilerías básicas de repositorios (dnf-plugins-core)
+      ansible.builtin.dnf:
+        name:
+          - dnf-plugins-core
+          - iproute-tc
+        state: present
+
+    - name: 6.2 Agregar repositorio de Docker/containerd
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/rhel/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+        mode: '0644'
+
+    - name: 6.3 Instalar containerd.io
+      ansible.builtin.dnf:
+        name: containerd.io
+        state: present
+
+    - name: 6.4 Crear directorio de configuración para containerd
+      ansible.builtin.file:
+        path: /etc/containerd
+        state: directory
+        mode: '0755'
+
+    - name: 6.5 Generar configuración por defecto de containerd si no existe
+      ansible.builtin.shell: containerd config default > /etc/containerd/config.toml
+      args:
+        creates: /etc/containerd/config.toml
+      notify: Reiniciar containerd
+
+    - name: 6.6 Habilitar SystemdCgroup en la configuración de containerd
+      ansible.builtin.replace:
+        path: /etc/containerd/config.toml
+        regexp: 'SystemdCgroup = false'
+        replace: 'SystemdCgroup = true'
+      notify: Reiniciar containerd
+
+    - name: 6.7 Iniciar y habilitar servicio containerd
+      ansible.builtin.service:
+        name: containerd
+        state: started
+        enabled: true
+
+    # =========================================================================
+    # 7. HERRAMIENTAS DE KUBERNETES (kubelet, kubeadm, kubectl)
+    # =========================================================================
+    - name: 7.1 Configurar el repositorio oficial de Kubernetes (pkgs.k8s.io)
+      ansible.builtin.copy:
+        dest: /etc/yum.repos.d/kubernetes.repo
+        content: |
+          [kubernetes]
+          name=Kubernetes
+          baseurl=https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/repodata/repomd.xml.key
+        mode: '0644'
+
+    - name: 7.2 Instalar kubelet, kubeadm y kubectl
+      ansible.builtin.dnf:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+        disable_excludes: kubernetes
+
+    - name: 7.3 Habilitar el servicio kubelet en el arranque del sistema
+      ansible.builtin.service:
+        name: kubelet
+        enabled: true
+
+  # ===========================================================================
+  # HANDLERS
+  # ===========================================================================
+  handlers:
+    - name: Aplicar parámetros sysctl
+      ansible.builtin.command: sysctl --system
+
+    - name: Reiniciar containerd
+      ansible.builtin.service:
+        name: containerd
+        state: restarted
+

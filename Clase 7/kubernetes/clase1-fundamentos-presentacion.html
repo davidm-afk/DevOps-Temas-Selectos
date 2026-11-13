@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 1 — Fundamentos de Kubernetes</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --accent: #238636;
+    --accent2: #1f6feb;
+    --accent3: #a371f7;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --yellow: #d29922;
+    --red: #da3633;
+    --cyan: #39c5cf;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── SLIDE CONTAINER ── */
+  .deck { width: 100vw; height: 100vh; position: relative; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 48px 64px;
+    opacity: 0;
+    transition: opacity .35s ease;
+  }
+  .slide.active { display: flex; opacity: 1; }
+
+  /* ── NAVIGATION ── */
+  .nav {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(22,27,34,.9);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 20px;
+    font-size: 13px;
+    color: var(--muted);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+  .nav button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 4px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background .2s;
+  }
+  .nav button:hover { background: var(--accent2); border-color: var(--accent2); }
+
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent3));
+    transition: width .3s ease;
+    z-index: 200;
+  }
+
+  /* ── SLIDE TYPES ── */
+
+  /* COVER */
+  .slide-cover { background: radial-gradient(ellipse at 60% 40%, #0e2a4d 0%, var(--bg) 70%); }
+  .slide-cover .eyebrow {
+    font-size: 13px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent2); margin-bottom: 16px; font-weight: 600;
+  }
+  .slide-cover h1 {
+    font-size: clamp(32px, 5vw, 58px);
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .slide-cover h1 span { color: var(--accent2); }
+  .slide-cover .subtitle {
+    font-size: 18px; color: var(--muted); text-align: center; max-width: 640px;
+  }
+  .slide-cover .tags { display: flex; gap: 10px; margin-top: 32px; flex-wrap: wrap; justify-content: center; }
+  .tag {
+    background: rgba(31,111,235,.15);
+    border: 1px solid rgba(31,111,235,.4);
+    color: var(--accent2);
+    padding: 4px 14px; border-radius: 999px; font-size: 13px;
+  }
+  .tag.green { background: rgba(35,134,54,.15); border-color: rgba(35,134,54,.4); color: var(--accent); }
+  .tag.purple { background: rgba(163,113,247,.15); border-color: rgba(163,113,247,.4); color: var(--accent3); }
+  .tag.yellow { background: rgba(210,153,34,.15); border-color: rgba(210,153,34,.4); color: var(--yellow); }
+
+  /* SECTION DIVIDER */
+  .slide-section {
+    background: linear-gradient(135deg, #0e1e3d 0%, var(--bg) 100%);
+    text-align: center;
+  }
+  .slide-section .section-num {
+    font-size: 80px; font-weight: 900; line-height: 1;
+    background: linear-gradient(135deg, var(--accent2), var(--accent3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
+  .slide-section h2 { font-size: clamp(28px, 4vw, 48px); font-weight: 800; margin-bottom: 12px; }
+  .slide-section p { color: var(--muted); font-size: 18px; }
+
+  /* CONTENT */
+  .slide-content { align-items: flex-start; }
+  .slide-content .slide-header {
+    font-size: clamp(22px, 3vw, 36px); font-weight: 700;
+    margin-bottom: 32px; width: 100%;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 16px;
+  }
+  .slide-content .slide-header span { color: var(--accent2); }
+
+  /* TWO COLUMNS */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; width: 100%; }
+  .cols.c3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .card h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card p, .card li { font-size: 15px; color: var(--muted); line-height: 1.7; }
+  .card ul { padding-left: 18px; }
+  .card.accent-blue { border-top: 3px solid var(--accent2); }
+  .card.accent-green { border-top: 3px solid var(--accent); }
+  .card.accent-purple { border-top: 3px solid var(--accent3); }
+  .card.accent-yellow { border-top: 3px solid var(--yellow); }
+
+  /* LIST */
+  .step-list { list-style: none; width: 100%; }
+  .step-list li {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+    font-size: 16px; line-height: 1.5;
+  }
+  .step-list li:last-child { border: none; }
+  .step-num {
+    min-width: 32px; height: 32px;
+    background: var(--accent2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+  }
+  .step-num.green { background: var(--accent); }
+  .step-num.purple { background: var(--accent3); }
+
+  /* CODE */
+  pre {
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-x: auto;
+    width: 100%;
+    color: #e6edf3;
+  }
+  .kw { color: #ff7b72; }
+  .str { color: #a5d6ff; }
+  .cm { color: var(--muted); font-style: italic; }
+  .hi { color: var(--accent); font-weight: 600; }
+  .hi2 { color: var(--accent2); font-weight: 600; }
+  .hi3 { color: var(--accent3); }
+
+  /* FLOW DIAGRAM */
+  .flow {
+    display: flex; align-items: center; gap: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px; width: 100%;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .flow-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    text-align: center;
+    font-size: 14px; font-weight: 600;
+    min-width: 110px;
+  }
+  .flow-box .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .flow-box.blue { border-color: var(--accent2); color: var(--accent2); }
+  .flow-box.green { border-color: var(--accent); color: var(--accent); }
+  .flow-box.purple { border-color: var(--accent3); color: var(--accent3); }
+  .flow-box.yellow { border-color: var(--yellow); color: var(--yellow); }
+  .flow-arrow { color: var(--muted); font-size: 22px; margin: 0 4px; }
+
+  /* BADGE */
+  .badge {
+    display: inline-block; padding: 3px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+  }
+  .badge.blue { background: rgba(31,111,235,.2); color: var(--accent2); border: 1px solid rgba(31,111,235,.4); }
+  .badge.green { background: rgba(35,134,54,.2); color: var(--accent); border: 1px solid rgba(35,134,54,.4); }
+  .badge.red { background: rgba(218,54,51,.2); color: var(--red); border: 1px solid rgba(218,54,51,.4); }
+
+  /* CALLOUT */
+  .callout {
+    width: 100%;
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 8px 0;
+  }
+  .callout.info { background: rgba(31,111,235,.1); border-left: 4px solid var(--accent2); }
+  .callout.warn { background: rgba(210,153,34,.1); border-left: 4px solid var(--yellow); }
+  .callout.success { background: rgba(35,134,54,.1); border-left: 4px solid var(--accent); }
+  .callout.danger { background: rgba(218,54,51,.1); border-left: 4px solid var(--red); }
+  .callout strong { font-weight: 700; }
+
+  /* BIG QUESTION */
+  .big-q {
+    font-size: clamp(22px, 3.5vw, 42px);
+    font-weight: 800;
+    text-align: center;
+    color: var(--accent2);
+    line-height: 1.3;
+    max-width: 800px;
+    margin-bottom: 24px;
+  }
+
+  /* DEMO SLIDE */
+  .slide-demo { background: radial-gradient(ellipse at 30% 70%, #0e2a1a 0%, var(--bg) 70%); }
+  .demo-label {
+    font-size: 13px; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin-bottom: 16px;
+  }
+  .demo-title { font-size: clamp(28px, 4vw, 48px); font-weight: 800; margin-bottom: 24px; text-align: center; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th { background: var(--surface); color: var(--muted); font-weight: 600;
+       text-align: left; padding: 10px 16px; border-bottom: 2px solid var(--border); }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+
+  /* CLOSE SLIDE */
+  .slide-close { text-align: center; }
+  .close-icon { font-size: 64px; margin-bottom: 16px; }
+  .slide-close h2 { font-size: 36px; font-weight: 800; margin-bottom: 12px; }
+
+  /* KEYBOARD HINT */
+  .kbd {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 12px;
+    font-family: monospace;
+  }
+
+  /* ── EXTRAS CLASE 1 ── */
+  code { font-family: 'Cascadia Code','Fira Code','Consolas',monospace; background: rgba(110,118,129,.2); padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  pre.sm { font-size: 13px; line-height: 1.6; padding: 14px 18px; }
+  .lab-chip { display:inline-block; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--cyan); border:1px solid rgba(57,197,207,.4); background:rgba(57,197,207,.1); padding:2px 10px; border-radius:999px; margin-left:10px; vertical-align:middle; font-weight:600; }
+  .stack { display:flex; flex-direction:column; gap:14px; width:100%; }
+  .card pre { margin-top: 10px; }
+  .card.accent-red { border-top: 3px solid var(--red); }
+  .card.accent-cyan { border-top: 3px solid var(--cyan); }
+  .flow-box.red { border-color: var(--red); color: var(--red); }
+  .flow-box.cyan { border-color: var(--cyan); color: var(--cyan); }
+  .flow-box small { display:block; font-size:11px; font-weight:400; color:var(--muted); margin-top:2px; }
+  .slide-fail { background: radial-gradient(ellipse at 70% 30%, #3a1212 0%, var(--bg) 70%); }
+  .fail-label { font-size: 13px; letter-spacing: .15em; text-transform: uppercase; color: var(--red); font-weight: 700; margin-bottom: 16px; }
+  .ns-box { border:2px dashed var(--accent3); border-radius:14px; padding:18px 20px 20px; width:100%; position:relative; }
+  .ns-box .ns-title { position:absolute; top:-12px; left:18px; background:var(--bg); padding:0 10px; color:var(--accent3); font-weight:700; font-size:14px; }
+  .row { display:flex; gap:14px; align-items:stretch; justify-content:center; flex-wrap:wrap; }
+  .pod-mini { border:1px solid var(--accent); color:var(--accent); border-radius:8px; padding:8px 12px; font-size:13px; font-weight:600; background:rgba(35,134,54,.08); }
+  td code, li code, p code { white-space: nowrap; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="deck" id="deck">
+
+  <!-- ══ 1 — PORTADA ══ -->
+  <div class="slide slide-cover active">
+    <div class="eyebrow">DevOps 2026 · Kubernetes · Clase 1</div>
+    <h1>Fundamentos de <span>Kubernetes</span></h1>
+    <p class="subtitle">De un Namespace vacío a una aplicación completa con configuración, secretos, identidad, réplicas y exposición — pieza por pieza.</p>
+    <div class="tags">
+      <span class="tag purple">Namespace</span>
+      <span class="tag green">Pod</span>
+      <span class="tag">ConfigMap</span>
+      <span class="tag yellow">Secret</span>
+      <span class="tag purple">ServiceAccount</span>
+      <span class="tag green">Deployment</span>
+      <span class="tag">Service</span>
+    </div>
+  </div>
+
+  <!-- ══ 2 — AGENDA ══ -->
+  <div class="slide slide-content">
+    <div class="slide-header">Ruta de la <span>clase</span></div>
+    <table>
+      <tr><th>Lab</th><th>Tema</th><th>Pregunta que responde</th></tr>
+      <tr><td><span class="badge blue">01</span></td><td><strong>Namespace</strong></td><td class="muted">¿Dónde vive mi aplicación?</td></tr>
+      <tr><td><span class="badge blue">02</span></td><td><strong>Pod</strong></td><td class="muted">¿Cómo corre un contenedor en Kubernetes?</td></tr>
+      <tr><td><span class="badge blue">03</span></td><td><strong>ConfigMap</strong></td><td class="muted">¿Cómo cambio la configuración sin reconstruir la imagen?</td></tr>
+      <tr><td><span class="badge blue">04</span></td><td><strong>Secret</strong></td><td class="muted">¿Dónde pongo contraseñas y tokens?</td></tr>
+      <tr><td><span class="badge blue">05</span></td><td><strong>ServiceAccount + RBAC</strong></td><td class="muted">¿Quién es mi Pod y qué puede hacer?</td></tr>
+      <tr><td><span class="badge blue">06</span></td><td><strong>Deployment</strong></td><td class="muted">¿Qué pasa si mi Pod muere o lo actualizo?</td></tr>
+      <tr><td><span class="badge blue">07</span></td><td><strong>Service</strong></td><td class="muted">¿Cómo lo encuentran otros Pods y los usuarios?</td></tr>
+      <tr><td><span class="badge green">08</span></td><td><strong>Ejercicio integrador</strong></td><td class="muted">Todo junto, en un solo <code>kubectl apply</code></td></tr>
+    </table>
+  </div>
+
+  <!-- ══ 3 — EL MAPA ══ -->
+  <div class="slide slide-content">
+    <div class="slide-header">El mapa: hacia dónde <span>vamos</span></div>
+    <div class="ns-box">
+      <span class="ns-title">📦 Namespace: mi-app &nbsp;<span class="muted small">(Lab 01)</span></span>
+      <div class="row" style="margin-top:8px">
+        <div class="flow-box purple"><span class="icon">🪪</span>ServiceAccount<small>Lab 05 · identidad</small></div>
+        <div class="flow-box blue"><span class="icon">⚙️</span>ConfigMap<small>Lab 03 · config + index.html</small></div>
+        <div class="flow-box yellow"><span class="icon">🔑</span>Secret<small>Lab 04 · API_KEY</small></div>
+      </div>
+      <div style="text-align:center; color:var(--muted); font-size:22px; margin:6px 0">↓ &nbsp; lo consume &nbsp; ↓</div>
+      <div class="row">
+        <div class="flow-box green" style="min-width:420px"><span class="icon">🚀</span>Deployment · 3 réplicas<small>Lab 06 · rolling update, probes, self-healing</small>
+          <div class="row" style="margin-top:10px"><span class="pod-mini">Pod</span><span class="pod-mini">Pod</span><span class="pod-mini">Pod</span></div>
+          <small>Lab 02 · la unidad mínima</small>
+        </div>
+        <div class="flow-arrow" style="align-self:center">←</div>
+        <div class="flow-box cyan" style="align-self:center"><span class="icon">🌐</span>Service NodePort<small>Lab 07 · :30090</small></div>
+        <div class="flow-arrow" style="align-self:center">←</div>
+        <div class="flow-box" style="align-self:center"><span class="icon">🧑‍💻</span>curl / navegador</div>
+      </div>
+    </div>
+    <div class="callout info" style="margin-top:18px">Cada lab agrega <strong>una pieza</strong>. En el Lab 08 las conectamos todas en <code>todo-en-uno.yaml</code>.</div>
+  </div>
+
+  <!-- ══ EN PALABRAS SIMPLES ══ -->
+  <div class="slide slide-content">
+    <div class="slide-header">¿Para qué sirve cada cosa? <span>En palabras simples</span></div>
+    <div class="callout info" style="margin-bottom:14px">🏢 Imagina que Kubernetes es un <strong>edificio de oficinas</strong> donde trabajan muchas empresas.</div>
+    <div class="cols" style="grid-template-columns:1fr 1fr 1fr 1fr; gap:14px">
+      <div class="card accent-purple"><h3>📦 Namespace</h3><p><strong>El piso</strong> de cada empresa. Lo de un piso no se revuelve con lo de otro.</p></div>
+      <div class="card accent-green"><h3>🧱 Pod</h3><p><strong>Una oficina</strong> dentro del piso. Ahí trabajan uno o más empleados (contenedores) que comparten escritorio y teléfono.</p></div>
+      <div class="card accent-blue"><h3>⚙️ ConfigMap</h3><p><strong>El manual pegado en la pared</strong>: "abrimos a las 9, idioma español". Cambias el manual, no al empleado.</p></div>
+      <div class="card accent-yellow"><h3>🔑 Secret</h3><p><strong>La caja fuerte</strong> con contraseñas y llaves. Solo la abre quien tiene permiso.</p></div>
+      <div class="card accent-purple"><h3>🪪 ServiceAccount</h3><p><strong>El gafete</strong> del empleado: dice quién es y a qué puertas puede entrar (RBAC).</p></div>
+      <div class="card accent-green"><h3>🚀 Deployment</h3><p><strong>El gerente</strong>: "quiero 3 empleados siempre". Si uno falta, contrata otro; si cambias el uniforme, los cambia uno por uno.</p></div>
+      <div class="card accent-cyan"><h3>🌐 Service</h3><p><strong>La recepción</strong> con un número fijo. Tú llamas a recepción y ella te pasa con quien esté libre.</p></div>
+      <div class="card accent-red"><h3>🏷️ Labels</h3><p><strong>Las etiquetas del gafete</strong> ("área: ventas"). Así el gerente y la recepción saben quién es de su equipo.</p></div>
+    </div>
+  </div>
+
+  <!-- ══ 4 — PREPARACIÓN ══ -->
+  <div class="slide slide-content">
+    <div class="slide-header">Antes de empezar: <span>preparar el cluster</span></div>
+    <div class="cols">
+      <pre><span class="cm"># En master01 — ¿el cluster está sano?</span>
+kubectl get nodes
+kubectl get pods -A | grep -v Running
+
+<span class="cm"># Bajar los labs</span>
+cd /root/kubernetes && git pull
+cd k8s-labs
+
+<span class="cm"># Namespace de trabajo</span>
+kubectl create namespace bootcamp
+kubectl config set-context --current \
+  --namespace=bootcamp</pre>
+      <div class="stack">
+        <div class="card accent-green"><h3>✅ Qué esperar</h3><ul>
+          <li>Todos los nodos en <code>Ready</code></li>
+          <li>Ningún Pod del sistema en error</li>
+          <li>Namespace activo: <code>bootcamp</code></li>
+        </ul></div>
+        <div class="card accent-yellow"><h3>📁 Convención de los labs</h3>
+          <p>Cada carpeta <code>NN-tema/</code> tiene YAMLs numerados + <code>README.md</code>. Siempre <strong>leer el YAML antes de aplicarlo</strong>: <code>cat archivo.yaml</code>.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ LAB 01 ══════════ -->
+  <div class="slide slide-section">
+    <div class="section-num">01</div>
+    <h2>Namespace</h2>
+    <p>Aislamiento lógico dentro del cluster</p>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">¿Qué es un <span>Namespace</span>? <span class="lab-chip">01-namespace/</span></div>
+    <div class="cols">
+      <div class="stack">
+        <div class="callout info">🏢 <strong>El cluster es un edificio</strong>; los Namespaces son los pisos. Cada equipo trabaja en el suyo sin pisar a los demás.</div>
+        <div class="card accent-purple"><h3>Reglas clave</h3><ul>
+          <li>Separa por entorno (<code>dev</code>, <code>prod</code>) o por equipo</li>
+          <li>Los nombres son únicos <strong>dentro</strong> del namespace — puede existir <code>backend</code> en <code>dev</code> y en <code>prod</code></li>
+          <li>Ya existen: <code>default</code>, <code>kube-system</code>, <code>kube-flannel</code></li>
+          <li>Borrar un namespace borra <strong>todo</strong> lo que contiene</li>
+        </ul></div>
+      </div>
+      <pre><span class="cm"># namespace.yaml</span>
+<span class="kw">apiVersion</span>: v1
+<span class="kw">kind</span>: <span class="hi">Namespace</span>
+<span class="kw">metadata</span>:
+  <span class="kw">name</span>: <span class="str">bootcamp</span>
+  <span class="kw">labels</span>:
+    <span class="kw">env</span>: training
+    <span class="kw">team</span>: devops
+
+<span class="cm"># Aplicar y verificar</span>
+kubectl apply -f 01-namespace/namespace.yaml
+kubectl describe namespace bootcamp
+kubectl config view --minify | grep namespace</pre>
+    </div>
+  </div>
+
+  <div class="slide slide-demo">
+    <div class="demo-label">▶ Ejercicio · alumnos</div>
+    <div class="demo-title">Imperativo vs. declarativo</div>
+    <div class="cols" style="max-width:1000px">
+      <pre><span class="cm"># Imperativo: "haz esto"</span>
+kubectl create namespace dev
+kubectl create namespace dev
+<span style="color:var(--red)">Error: namespaces "dev" already exists</span></pre>
+      <pre><span class="cm"># Declarativo: "así debe quedar"</span>
+kubectl apply -f namespace.yaml
+kubectl apply -f namespace.yaml
+<span class="hi">namespace/bootcamp unchanged</span></pre>
+    </div>
+    <div class="callout success" style="max-width:1000px; margin-top:16px"><strong>apply es idempotente:</strong> lo puedes correr N veces y el resultado es el mismo. Por eso es la base de la automatización (y de GitOps en la Clase 4).</div>
+    <p class="muted small" style="margin-top:10px">Limpieza: <code>kubectl delete namespace dev prod</code></p>
+  </div>
+
+  <!-- ══════════ LAB 02 ══════════ -->
+  <div class="slide slide-section">
+    <div class="section-num">02</div>
+    <h2>Pod</h2>
+    <p>La unidad mínima de despliegue</p>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">Anatomía de un <span>Pod</span> <span class="lab-chip">02-pod/01-pod-basico.yaml</span></div>
+    <div class="cols">
+      <pre class="sm"><span class="kw">apiVersion</span>: v1
+<span class="kw">kind</span>: <span class="hi">Pod</span>
+<span class="kw">metadata</span>:
+  <span class="kw">name</span>: pod-nginx
+  <span class="kw">labels</span>:              <span class="cm"># ← los usará el Service</span>
+    <span class="hi2">app: nginx</span>
+<span class="kw">spec</span>:
+  <span class="kw">containers</span>:
+    - <span class="kw">name</span>: nginx
+      <span class="kw">image</span>: <span class="str">nginx:1.25</span>
+      <span class="kw">ports</span>:
+        - <span class="kw">containerPort</span>: 80  <span class="cm"># informativo</span>
+      <span class="kw">resources</span>:
+        <span class="kw">requests</span>: { cpu: <span class="str">"100m"</span>, memory: <span class="str">"64Mi"</span> }
+        <span class="kw">limits</span>:   { cpu: <span class="str">"200m"</span>, memory: <span class="str">"128Mi"</span> }</pre>
+      <div class="stack">
+        <div class="card accent-green"><h3>🧱 Qué es</h3><ul>
+          <li>Uno o más contenedores que comparten <strong>IP, red (localhost) y volúmenes</strong></li>
+          <li>IP propia de la red de Flannel (<code>10.244.x.x</code>)</li>
+          <li><strong>Efímero</strong>: si muere, no regresa solo</li>
+        </ul></div>
+        <div class="card accent-yellow"><h3>👀 Señalar en el YAML</h3><ul>
+          <li><code>requests</code> = lo que reserva el scheduler · <code>limits</code> = el techo</li>
+          <li><code>containerPort</code> no abre nada por sí solo</li>
+          <li><code>labels</code>: el "pegamento" de Kubernetes</li>
+        </ul></div>
+        <p class="muted small">Ciclo de vida: <code>Pending → Running → Succeeded / Failed</code></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-demo">
+    <div class="demo-label">▶ Demo en vivo · instructor</div>
+    <div class="demo-title">Crear, inspeccionar y entrar al Pod</div>
+    <div class="cols" style="max-width:1100px">
+      <pre class="sm">kubectl apply -f 02-pod/01-pod-basico.yaml
+kubectl get pods --watch
+
+<span class="cm"># ¿En qué worker quedó? ¿Qué IP tiene?</span>
+kubectl get pod pod-nginx -o wide
+
+<span class="cm"># Events = el historial del Pod</span>
+kubectl describe pod pod-nginx
+kubectl logs pod-nginx</pre>
+      <pre class="sm"><span class="cm"># Entrar al contenedor</span>
+kubectl exec -it pod-nginx -- bash
+  nginx -v
+  exit
+
+<span class="cm"># Acceder sin Service (solo depuración)</span>
+kubectl port-forward pod/pod-nginx 8080:80 &
+curl http://localhost:8080
+kill %1</pre>
+    </div>
+    <div class="callout info" style="max-width:1100px; margin-top:14px">❓ <strong>¿Quién eligió el worker?</strong> El <strong>Scheduler</strong> del Control Plane, con base en los <code>requests</code> y los recursos libres de cada nodo.</div>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">Sidecar e Init: <span>explicado fácil</span></div>
+    <div class="callout info" style="margin-bottom:14px">👨‍🍳 Piensa en el Pod como <strong>la cocina de un restaurante</strong>. El contenedor principal es <strong>el chef</strong>.</div>
+    <div class="cols">
+      <div class="card accent-purple"><h3>⏳ Init Container = el que abre la cocina</h3>
+        <p>Llega <strong>antes</strong> que el chef: prende las luces, revisa que haya gas y que llegó el pedido. Cuando termina, <strong>se va</strong>. Solo entonces entra el chef.</p>
+        <p style="margin-top:8px">Si algo falla (no hay gas), <strong>el chef no entra</strong>: el Pod se queda en <code>Init:0/1</code>.</p>
+        <p class="small" style="margin-top:8px"><strong>Ejemplos reales:</strong> esperar a que la base de datos esté lista · correr migraciones · descargar archivos · preparar permisos de una carpeta.</p>
+      </div>
+      <div class="card accent-blue"><h3>🤝 Sidecar = el ayudante del chef</h3>
+        <p>Trabaja <strong>al mismo tiempo</strong> que el chef, en la misma cocina. No cocina el plato principal: lava, anota pedidos, saca la basura.</p>
+        <p style="margin-top:8px">Comparten la misma mesa (<strong>volumen</strong>) y se hablan sin gritar (<strong>localhost</strong>). Por eso ves <code>READY 2/2</code>.</p>
+        <p class="small" style="margin-top:8px"><strong>Ejemplos reales:</strong> enviar logs a un sistema central · proxy de red (Envoy en Istio) · recargar configuración · métricas.</p>
+      </div>
+    </div>
+    <div class="flow" style="margin-top:16px">
+      <div class="flow-box purple">⏳ Init 1<small>prepara</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box purple">⏳ Init 2<small>uno por uno, en orden</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green" style="min-width:300px">👨‍🍳 App &nbsp;+&nbsp; 🤝 Sidecar<small>arrancan juntos y viven juntos</small></div>
+    </div>
+    <p class="muted small" style="margin-top:10px;text-align:center"><strong>Init:</strong> antes y se termina · <strong>Sidecar:</strong> durante y se queda</p>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">Pods con más de un contenedor: <span>Sidecar</span> e <span>Init</span></div>
+    <div class="cols">
+      <div class="card accent-blue"><h3>🤝 Sidecar <span class="lab-chip">02-pod-multiples-contenedores</span></h3>
+        <p><code>app</code> escribe en <code>/var/log/app.log</code>; <code>sidecar-log-reader</code> hace <code>tail -f</code>. Comparten un volumen <code>emptyDir</code>.</p>
+        <pre class="sm">kubectl apply -f 02-pod/02-pod-multiples-contenedores.yaml
+kubectl get pods            <span class="cm"># READY 2/2</span>
+kubectl logs pod-sidecar -c sidecar-log-reader -f
+kubectl logs pod-sidecar -c app   <span class="cm"># vacío ¿por qué?</span></pre>
+        <p class="small" style="margin-top:8px">El <code>app</code> no escribe en stdout: escribe al archivo. Con varios contenedores, <code>-c</code> es obligatorio.</p>
+      </div>
+      <div class="card accent-purple"><h3>⏳ Init Container <span class="lab-chip">03-pod-init-container</span></h3>
+        <p>Corre <strong>antes</strong> que los contenedores principales y debe terminar con éxito. Útil para esperar una BD, descargar config, preparar datos.</p>
+        <pre class="sm">kubectl apply -f 02-pod/03-pod-init-container.yaml
+kubectl get pods --watch
+<span class="cm"># Init:0/1 → PodInitializing → Running</span>
+kubectl logs pod-init -c init-esperar-servicio
+kubectl describe pod pod-init | grep -A15 "Init Containers:"</pre>
+        <p class="small" style="margin-top:8px">Si el init falla, el Pod <strong>nunca arranca</strong>. Lo veremos de nuevo en la Clase 2 esperando a PostgreSQL.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-fail">
+    <div class="fail-label">💥 Falla en vivo</div>
+    <div class="demo-title">"Guardé un archivo en el Pod… y desapareció"</div>
+    <div class="cols" style="max-width:1100px">
+      <pre class="sm"><span class="cm"># 1. Crear un archivo dentro del Pod</span>
+kubectl exec -it pod-nginx -- bash
+  echo "Hola K8s" > /tmp/prueba.txt
+  exit
+
+<span class="cm"># 2. Borrar y recrear el Pod</span>
+kubectl delete pod pod-nginx
+kubectl apply -f 02-pod/01-pod-basico.yaml
+
+<span class="cm"># 3. ¿Sigue ahí?</span>
+kubectl exec pod-nginx -- cat /tmp/prueba.txt
+<span style="color:var(--red)">cat: /tmp/prueba.txt: No such file or directory</span></pre>
+      <div class="stack">
+        <div class="callout danger"><strong>Los Pods son efímeros.</strong> Un Pod recreado es un Pod <em>nuevo</em>: otra IP, filesystem limpio desde la imagen.</div>
+        <div class="callout warn"><strong>Dos lecciones:</strong><br>① No guardar estado en el Pod → <em>PersistentVolumes (Clase 2)</em><br>② Nadie recreó el Pod por nosotros → <em>Deployment (Lab 06)</em></div>
+        <p class="muted small">Limpieza: <code>kubectl delete -f 02-pod/</code></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ LAB 03 ══════════ -->
+  <div class="slide slide-section">
+    <div class="section-num">03</div>
+    <h2>ConfigMap</h2>
+    <p>La configuración vive fuera de la imagen</p>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">Dos formas de consumir un <span>ConfigMap</span> <span class="lab-chip">03-configmap/</span></div>
+    <div class="callout info" style="margin-bottom:16px"><strong>12-factor app:</strong> la misma imagen corre en dev y en prod; lo único que cambia es el ConfigMap. La imagen no se toca.</div>
+    <div class="cols">
+      <div class="card accent-blue"><h3>① Variables de entorno <span class="lab-chip">02-…-envvar</span></h3>
+        <pre class="sm"><span class="kw">envFrom</span>:
+  - <span class="kw">configMapRef</span>:
+      <span class="kw">name</span>: app-config
+<span class="cm"># o una clave puntual:</span>
+<span class="cm"># env[].valueFrom.configMapKeyRef</span></pre>
+        <pre class="sm">kubectl apply -f 03-configmap/01-configmap-literal.yaml
+kubectl apply -f 03-configmap/02-pod-con-configmap-envvar.yaml
+kubectl exec pod-config-env -- env | grep APP</pre>
+      </div>
+      <div class="card accent-green"><h3>② Archivos en un volumen <span class="lab-chip">03-…-volumen</span></h3>
+        <pre class="sm"><span class="kw">volumeMounts</span>:
+  - <span class="kw">name</span>: config-volume
+    <span class="kw">mountPath</span>: /etc/app-config
+<span class="kw">volumes</span>:
+  - <span class="kw">name</span>: config-volume
+    <span class="kw">configMap</span>: { name: app-config }</pre>
+        <pre class="sm">kubectl apply -f 03-configmap/03-pod-con-configmap-volumen.yaml
+kubectl exec pod-config-vol -- ls -la /etc/app-config/
+<span class="cm"># cada clave = un archivo (symlink → ..data/)</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-demo">
+    <div class="demo-label">▶ Demo en vivo · hot reload</div>
+    <div class="demo-title">Cambio el ConfigMap… ¿quién se entera?</div>
+    <div class="cols" style="max-width:1100px">
+      <pre class="sm"><span class="cm"># Terminal 1 — observar el archivo montado</span>
+kubectl exec -it pod-config-vol -- \
+  sh -c "watch -n2 cat /etc/app-config/APP_LOG_LEVEL"
+
+<span class="cm"># Terminal 2 — editar</span>
+kubectl edit configmap app-config
+<span class="cm">#   APP_LOG_LEVEL: info → debug</span>
+
+<span class="cm"># ~60 s después: el archivo cambió ✓</span>
+<span class="cm"># ¿Y la variable de entorno?</span>
+kubectl exec pod-config-env -- env | grep APP_LOG_LEVEL
+<span style="color:var(--red)">APP_LOG_LEVEL=info</span>   <span class="cm"># ✗ sigue igual</span></pre>
+      <div class="stack">
+        <table>
+          <tr><th></th><th>env / envFrom</th><th>Volumen</th></tr>
+          <tr><td>Se lee</td><td>Al arrancar</td><td>En cada lectura</td></tr>
+          <tr><td>Cambios</td><td><span class="badge red">Reiniciar Pod</span></td><td><span class="badge green">Hot reload ~1 min</span></td></tr>
+          <tr><td>Mecanismo</td><td>Copia al proceso</td><td>Symlink a <code>..data</code></td></tr>
+        </table>
+        <div class="callout warn"><strong>Ojo:</strong> si montas con <code>subPath</code>, el archivo <strong>no</strong> se actualiza. Y hot reload del archivo ≠ que la app lo relea.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ LAB 04 ══════════ -->
+  <div class="slide slide-section">
+    <div class="section-num">04</div>
+    <h2>Secret</h2>
+    <p>Datos sensibles: contraseñas, tokens, certificados</p>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">Base64 <span>no es cifrado</span> <span class="lab-chip">04-secret/</span></div>
+    <div class="cols">
+      <div class="stack">
+        <pre class="sm"><span class="cm"># Codificar (¡siempre echo -n!)</span>
+echo -n "mi-password" | base64   <span class="cm"># bWktcGFzc3dvcmQ=</span>
+
+kubectl apply -f 04-secret/01-secret.yaml
+kubectl describe secret db-credentials  <span class="cm"># solo tamaños</span>
+kubectl get secret db-credentials -o yaml  <span class="cm"># base64</span>
+
+<span class="cm"># Cualquiera con acceso lo decodifica:</span>
+kubectl get secret db-credentials \
+  -o jsonpath='{.data.DB_PASSWORD}' | base64 -d
+<span style="color:var(--red)">mi-password</span></pre>
+        <pre class="sm"><span class="cm"># Al inyectarlo, Kubernetes decodifica solo</span>
+kubectl apply -f 04-secret/02-pod-con-secret.yaml
+kubectl exec pod-con-secret -- env | grep DB</pre>
+      </div>
+      <div class="stack">
+        <div class="card accent-yellow"><h3>❓ Entonces, ¿para qué sirve?</h3><ul>
+          <li><strong>RBAC</strong>: puedo dar acceso a ConfigMaps sin dar acceso a Secrets</li>
+          <li>Separación de responsabilidades</li>
+          <li>Base para cifrado real: <strong>Vault</strong>, <strong>Sealed Secrets</strong>, <strong>External Secrets Operator</strong></li>
+        </ul></div>
+        <div class="callout danger"><strong>Trampa típica:</strong> <code>echo "x" | base64</code> sin <code>-n</code> codifica también el salto de línea → la contraseña "no funciona".</div>
+        <div class="callout warn">Un Secret en Git, aunque esté en base64, <strong>es una contraseña publicada</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ LAB 05 ══════════ -->
+  <div class="slide slide-section">
+    <div class="section-num">05</div>
+    <h2>ServiceAccount + RBAC</h2>
+    <p>La identidad de las aplicaciones</p>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">¿Quién puede hacer <span>qué</span>? <span class="lab-chip">05-serviceaccount/</span></div>
+    <div class="cols" style="margin-bottom:18px">
+      <div class="card accent-blue"><h3>🧑 Personas</h3><p><code>kubectl</code> + <code>kubeconfig</code> + certificados</p></div>
+      <div class="card accent-purple"><h3>🤖 Aplicaciones</h3><p><strong>ServiceAccount</strong> + token JWT montado en el Pod. Ej.: un pipeline de CI/CD, un operador, un dashboard.</p></div>
+    </div>
+    <div class="flow">
+      <div class="flow-box purple"><span class="icon">🪪</span>ServiceAccount<small>app-serviceaccount</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box yellow"><span class="icon">🔗</span>RoleBinding<small>pod-reader-binding</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box blue"><span class="icon">📜</span>Role<small>pod-reader</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green"><span class="icon">✅</span>get · list · watch<small>pods, pods/log · configmaps</small></div>
+    </div>
+    <div class="cols" style="margin-top:18px">
+      <p class="muted small"><strong>Role</strong> = permisos en un namespace · <strong>ClusterRole</strong> = en todo el cluster · <strong>RoleBinding</strong> = une Role con un sujeto (user, group, SA).</p>
+      <div class="callout success" style="margin:0"><strong>Mínimo privilegio:</strong> no puede crear, borrar ni leer Secrets.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-demo">
+    <div class="demo-label">▶ Demo en vivo · instructor</div>
+    <div class="demo-title">Probar permisos sin adivinar: <code>auth can-i</code></div>
+    <div class="cols" style="max-width:1150px">
+      <pre class="sm">kubectl apply -f 05-serviceaccount/01-serviceaccount.yaml
+kubectl apply -f 05-serviceaccount/02-role-rolebinding.yaml
+
+SA=system:serviceaccount:bootcamp:app-serviceaccount
+kubectl auth can-i list pods        --as=$SA -n bootcamp  <span class="hi"># yes</span>
+kubectl auth can-i delete pods      --as=$SA -n bootcamp  <span style="color:var(--red)"># no</span>
+kubectl auth can-i create deployments --as=$SA -n bootcamp <span style="color:var(--red)"># no</span></pre>
+      <pre class="sm"><span class="cm"># Un Pod que llama a la API con su token</span>
+kubectl apply -f 05-serviceaccount/03-pod-con-serviceaccount.yaml
+kubectl logs pod-api-caller
+
+<span class="cm"># ¿Dónde está el token?</span>
+kubectl exec pod-api-caller -- \
+  ls /var/run/secrets/kubernetes.io/serviceaccount/
+<span class="hi">ca.crt  namespace  token</span></pre>
+    </div>
+    <div class="callout info" style="max-width:1150px; margin-top:14px"><strong>Ejercicio:</strong> crear el SA <code>config-reader</code> que solo pueda <code>get/list configmaps</code> y comprobar con <code>can-i</code> que <em>no</em> puede listar pods. ❓ Si comprometen ese Pod, ¿qué puede hacer el atacante?</div>
+  </div>
+
+  <!-- ══════════ LAB 06 ══════════ -->
+  <div class="slide slide-section">
+    <div class="section-num">06</div>
+    <h2>Deployment</h2>
+    <p>Réplicas, actualizaciones sin caída y auto-recuperación</p>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">Un supervisor para los <span>Pods</span> <span class="lab-chip">06-deployment/01-deployment.yaml</span></div>
+    <div class="cols">
+      <div class="stack">
+        <div class="flow" style="flex-direction:column; gap:8px">
+          <div class="flow-box green" style="min-width:260px">🚀 Deployment <small>estrategia, historial de versiones</small></div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-box blue" style="min-width:260px">📋 ReplicaSet <small>"que siempre haya 3"</small></div>
+          <div class="flow-arrow">↓</div>
+          <div class="row"><span class="pod-mini">Pod-1</span><span class="pod-mini">Pod-2</span><span class="pod-mini">Pod-3</span></div>
+        </div>
+        <pre class="sm">kubectl apply -f 06-deployment/01-deployment.yaml
+kubectl get deploy,rs,pods -o wide   <span class="cm"># repartidos en workers</span>
+kubectl scale deployment nginx-deployment --replicas=5</pre>
+      </div>
+      <div class="stack">
+        <div class="card accent-red"><h3>❤️ livenessProbe</h3><p>¿El contenedor sigue vivo? Si falla <code>failureThreshold</code> veces → <strong>kubelet reinicia el contenedor</strong>.</p></div>
+        <div class="card accent-cyan"><h3>🚦 readinessProbe</h3><p>¿Puede recibir tráfico? Si falla → el Pod <strong>sale de los endpoints del Service</strong>, pero no se reinicia.</p></div>
+        <pre class="sm"><span class="kw">livenessProbe</span>:
+  <span class="kw">httpGet</span>: { path: /, port: 80 }
+  <span class="kw">initialDelaySeconds</span>: 10
+  <span class="kw">periodSeconds</span>: 10
+  <span class="kw">failureThreshold</span>: 3</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">Rolling update: <span>actualizar sin caída</span></div>
+    <div class="cols">
+      <div class="stack">
+        <pre class="sm"><span class="kw">strategy</span>:
+  <span class="kw">type</span>: RollingUpdate
+  <span class="kw">rollingUpdate</span>:
+    <span class="hi2">maxSurge: 1</span>        <span class="cm"># hasta 4 Pods (3+1) durante el cambio</span>
+    <span class="hi2">maxUnavailable: 1</span>  <span class="cm"># mínimo 2 de 3 disponibles</span></pre>
+        <pre class="sm"><span class="cm"># Terminal 1</span>
+kubectl get pods --watch
+
+<span class="cm"># Terminal 2</span>
+kubectl set image deployment/nginx-deployment nginx=nginx:1.26
+kubectl rollout status deployment/nginx-deployment
+kubectl get rs           <span class="cm"># RS nuevo con 3, RS viejo con 0</span>
+kubectl rollout history deployment/nginx-deployment</pre>
+      </div>
+      <div class="stack">
+        <ul class="step-list">
+          <li><span class="step-num">1</span><div>Se crea un <strong>ReplicaSet nuevo</strong> con la imagen <code>nginx:1.26</code></div></li>
+          <li><span class="step-num">2</span><div>Sube un Pod nuevo; cuando pasa la <strong>readinessProbe</strong>, se baja uno viejo</div></li>
+          <li><span class="step-num">3</span><div>Se repite hasta que el RS nuevo tiene 3 y el viejo 0</div></li>
+          <li><span class="step-num green">✓</span><div>El RS viejo <strong>se conserva</strong> (en 0): es lo que permite el rollback</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-fail">
+    <div class="fail-label">💥 Falla en vivo</div>
+    <div class="demo-title">Desplegar una imagen que no existe</div>
+    <div class="cols" style="max-width:1100px">
+      <pre class="sm">kubectl set image deployment/nginx-deployment \
+  nginx=nginx:version-no-existe
+kubectl get pods --watch
+<span style="color:var(--red)">nginx-deployment-xxxx   0/1   ErrImagePull</span>
+<span style="color:var(--red)">nginx-deployment-xxxx   0/1   ImagePullBackOff</span>
+
+<span class="cm"># Recuperar</span>
+kubectl rollout undo deployment/nginx-deployment
+kubectl rollout status deployment/nginx-deployment
+kubectl describe deployment nginx-deployment | grep Image</pre>
+      <div class="stack">
+        <div class="callout success"><strong>El servicio no se cae.</strong> Los Pods nuevos nunca quedan Ready, así que el rollout se detiene y los viejos siguen atendiendo.</div>
+        <div class="callout warn">Con <code>maxUnavailable: 1</code> se sacrifica <strong>un</strong> Pod viejo → quedan 2 de 3. En el integrador usamos <code>maxUnavailable: 0</code>: no se baja ninguno hasta que el nuevo esté listo.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-demo">
+    <div class="demo-label">▶ Ejercicio · alumnos</div>
+    <div class="demo-title">Deployment real: ConfigMap + Secret + SA</div>
+    <div class="cols" style="max-width:1150px">
+      <pre class="sm"><span class="cm"># Labs 03 + 04 + 05 juntos</span>
+kubectl apply -f 06-deployment/02-deployment-con-config.yaml
+kubectl get pods -l app=webapp
+POD=$(kubectl get pods -l app=webapp \
+  -o jsonpath='{.items[0].metadata.name}')
+kubectl exec $POD -- env | grep -E 'APP_ENV|API_KEY'
+
+kubectl scale deployment webapp-deployment --replicas=4
+
+<span class="cm"># Self-healing: matar nginx dentro del contenedor</span>
+kubectl exec $POD -- nginx -s stop
+kubectl get pods --watch     <span class="cm"># RESTARTS 0 → 1</span></pre>
+      <div class="stack">
+        <div class="callout info"><strong>¿Qué pasó?</strong> nginx es el proceso principal: al detenerse, el contenedor termina y el kubelet lo reinicia (<code>restartPolicy: Always</code>). El Pod es el mismo; sube <code>RESTARTS</code>.</div>
+        <div class="callout warn">La <strong>livenessProbe</strong> actúa cuando el proceso sigue vivo pero <em>no responde</em> (colgado). Las dos son parte del self-healing.</div>
+        <p class="muted small">Limpieza: <code>kubectl delete -f 06-deployment/02-deployment-con-config.yaml</code> — deja <code>nginx-deployment</code> vivo para el Lab 07.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ LAB 07 ══════════ -->
+  <div class="slide slide-section">
+    <div class="section-num">07</div>
+    <h2>Service</h2>
+    <p>IP estable + nombre DNS + balanceo de carga</p>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">El problema: <span>las IPs de los Pods cambian</span> <span class="lab-chip">07-service/</span></div>
+    <div class="cols">
+      <div class="stack">
+        <div class="flow" style="justify-content:space-around">
+          <div style="text-align:center"><div class="flow-box red">Frontend</div><div class="muted small" style="margin:6px 0">→ 10.244.1.5 ✗<br>→ 10.244.2.3 ✗</div><div class="small" style="color:var(--red)">Sin Service</div></div>
+          <div style="text-align:center"><div class="flow-box green">Frontend</div><div class="muted small" style="margin:6px 0">→ <strong style="color:var(--cyan)">backend-service</strong> ✓</div><div class="row"><span class="pod-mini">Pod</span><span class="pod-mini">Pod</span><span class="pod-mini">Pod</span></div></div>
+        </div>
+        <pre class="sm"><span class="kw">kind</span>: <span class="hi">Service</span>
+<span class="kw">spec</span>:
+  <span class="kw">type</span>: ClusterIP
+  <span class="kw">selector</span>:
+    <span class="hi2">app: backend</span>     <span class="cm"># ← busca Pods con este label</span>
+  <span class="kw">ports</span>:
+    - <span class="kw">port</span>: 80         <span class="cm"># puerto del Service</span>
+      <span class="kw">targetPort</span>: 80   <span class="cm"># puerto del contenedor</span></pre>
+      </div>
+      <table>
+        <tr><th>Tipo</th><th>Alcance</th><th>En el lab</th></tr>
+        <tr><td><span class="badge blue">ClusterIP</span></td><td>Solo dentro del cluster (default)</td><td><code>backend-service</code></td></tr>
+        <tr><td><span class="badge green">NodePort</span></td><td>Puerto 30000–32767 en <strong>todos</strong> los nodos</td><td><code>frontend-nodeport :30080</code></td></tr>
+        <tr><td><span class="badge red">LoadBalancer</span></td><td>IP externa del proveedor cloud</td><td>Queda <code>&lt;pending&gt;</code> en kubeadm (sin MetalLB)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="slide slide-demo">
+    <div class="demo-label">▶ Demo en vivo · instructor</div>
+    <div class="demo-title">Labels → selector → endpoints</div>
+    <div class="cols" style="max-width:1150px">
+      <pre class="sm">kubectl apply -f 07-service/01-service-clusterip.yaml
+kubectl get svc backend-service
+kubectl get endpoints backend-service   <span class="cm"># IPs reales de los Pods</span>
+kubectl get pods -l app=backend -o wide  <span class="cm"># las mismas</span>
+
+<span class="cm"># Escalar → los endpoints se actualizan solos</span>
+kubectl scale deployment backend-deployment --replicas=5
+kubectl get endpoints backend-service</pre>
+      <pre class="sm"><span class="cm"># Desafío: "secuestrar" un Pod del Service</span>
+POD=$(kubectl get pods -l app=backend \
+  -o jsonpath='{.items[0].metadata.name}')
+kubectl label pod $POD app=otro-label --overwrite
+kubectl get endpoints backend-service   <span class="cm"># uno menos</span>
+kubectl get pods -l app=backend          <span class="cm"># ¡y el RS creó otro!</span>
+
+kubectl label pod $POD app=backend --overwrite</pre>
+    </div>
+    <div class="callout success" style="max-width:1150px; margin-top:14px"><strong>El Service no conoce Pods por nombre:</strong> los encuentra por labels. El ReplicaSet tampoco: al perder el label, deja de contarlo y crea un reemplazo.</div>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">DNS interno y <span>NodePort</span></div>
+    <div class="cols">
+      <div class="card accent-cyan"><h3>🔎 DNS de Kubernetes <span class="lab-chip">04-comunicacion…</span></h3>
+        <pre class="sm">kubectl apply -f 07-service/04-comunicacion-entre-servicios.yaml
+kubectl logs pod-test-dns</pre>
+        <table style="margin-top:10px; font-size:14px">
+          <tr><td><code>backend-service</code></td><td>Mismo namespace</td></tr>
+          <tr><td><code>backend-service.bootcamp.svc.cluster.local</code></td><td>Desde cualquier namespace</td></tr>
+        </table>
+        <p class="small" style="margin-top:10px">❓ Un Pod en <code>prod</code> quiere llamar a <code>api</code> en <code>dev</code>: <code>api.dev.svc.cluster.local</code></p>
+      </div>
+      <div class="card accent-green"><h3>🌐 NodePort <span class="lab-chip">02-service-nodeport</span></h3>
+        <pre class="sm">kubectl apply -f 07-service/02-service-nodeport.yaml
+kubectl get endpoints frontend-nodeport
+curl http://192.168.109.143:30080
+curl http://192.168.109.144:30080
+curl http://192.168.109.145:30080</pre>
+        <p class="small" style="margin-top:10px">Responde en <strong>cualquier</strong> nodo, aunque el Pod viva en otro: kube-proxy reenvía.</p>
+        <div class="callout warn small" style="margin-top:10px"><code>frontend-nodeport</code> selecciona <code>app: nginx</code> = el Deployment del <strong>Lab 06</strong>. Si lo borraste: <strong>Service sin endpoints</strong> → <code>curl</code> falla. Diagnóstico en vivo 👇</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-fail">
+    <div class="fail-label">💥 Falla en vivo · diagnóstico</div>
+    <div class="demo-title">"El Service existe pero no responde"</div>
+    <div class="cols" style="max-width:1100px">
+      <ul class="step-list">
+        <li><span class="step-num">1</span><div><code>kubectl get endpoints &lt;svc&gt;</code> → ¿vacío? <span class="muted">→ no hay Pods con ese label (o no están Ready)</span></div></li>
+        <li><span class="step-num">2</span><div><code>kubectl describe svc &lt;svc&gt; | grep Selector</code> vs. <code>kubectl get pods --show-labels</code></div></li>
+        <li><span class="step-num">3</span><div>Pods existen pero no Ready → revisar <strong>readinessProbe</strong> en <code>describe pod</code></div></li>
+        <li><span class="step-num">4</span><div>Endpoints OK, NodePort no responde → firewall del nodo</div></li>
+      </ul>
+      <div class="stack">
+        <pre class="sm"><span class="cm"># Caso Lab 07: faltaba el Deployment del Lab 06</span>
+kubectl get endpoints frontend-nodeport
+<span style="color:var(--red)">frontend-nodeport   &lt;none&gt;</span>
+kubectl apply -f 06-deployment/01-deployment.yaml
+kubectl get endpoints frontend-nodeport
+<span class="hi">frontend-nodeport   10.244.1.7:80,10.244.2.4:80,...</span></pre>
+        <div class="callout info small"><strong>NodePort "No route to host"</strong> en Rocky 9: firewalld con nftables vs. reglas iptables de kube-proxy → <code>FirewallBackend=iptables</code> en los workers.</div>
+        <p class="muted small">Limpieza: <code>kubectl delete -f 07-service/ -f 06-deployment/</code></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ LAB 08 ══════════ -->
+  <div class="slide slide-section">
+    <div class="section-num">08</div>
+    <h2>Ejercicio integrador</h2>
+    <p>Una aplicación completa en un solo archivo: <code>todo-en-uno.yaml</code></p>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">Cada pieza viene de un <span>lab</span> <span class="lab-chip">08-ejercicio-integrador/</span></div>
+    <table>
+      <tr><th>#</th><th>Recurso</th><th>Nombre</th><th>Lab</th><th>Qué aporta aquí</th></tr>
+      <tr><td>1</td><td><strong>Namespace</strong></td><td><code>mi-app</code></td><td><span class="badge blue">01</span></td><td class="muted">Todo aislado; se limpia con un solo <code>delete namespace</code></td></tr>
+      <tr><td>2</td><td><strong>ServiceAccount</strong></td><td><code>mi-app-sa</code></td><td><span class="badge blue">05</span></td><td class="muted"><code>automountServiceAccountToken: false</code> — no habla con la API, no lleva token</td></tr>
+      <tr><td>3</td><td><strong>ConfigMap</strong></td><td><code>mi-app-config</code></td><td><span class="badge blue">03</span></td><td class="muted">Variables (<code>APP_ENV</code>, <code>LOG_LEVEL</code>) <strong>y</strong> el <code>index.html</code> de la página</td></tr>
+      <tr><td>4</td><td><strong>Secret</strong></td><td><code>mi-app-secret</code></td><td><span class="badge blue">04</span></td><td class="muted"><code>API_KEY</code> inyectada como variable</td></tr>
+      <tr><td>5</td><td><strong>Deployment</strong></td><td><code>mi-app-deployment</code></td><td><span class="badge blue">02 · 06</span></td><td class="muted">3 réplicas, probes, limits, <code>maxUnavailable: 0</code></td></tr>
+      <tr><td>6</td><td><strong>Service</strong></td><td><code>mi-app-service</code></td><td><span class="badge blue">07</span></td><td class="muted">NodePort <code>30090</code>, selector <code>app: mi-app</code></td></tr>
+    </table>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">Recorrido del YAML: <span>cómo se conectan</span></div>
+    <div class="cols">
+      <pre class="sm"><span class="cm"># Deployment → spec.template.spec</span>
+<span class="kw">serviceAccountName</span>: <span class="hi3">mi-app-sa</span>          <span class="cm"># ← Lab 05</span>
+<span class="kw">containers</span>:
+  - <span class="kw">name</span>: app
+    <span class="kw">image</span>: nginx:1.25
+    <span class="kw">envFrom</span>:
+      - <span class="kw">configMapRef</span>: { name: <span class="hi2">mi-app-config</span> }  <span class="cm"># ← Lab 03</span>
+    <span class="kw">env</span>:
+      - <span class="kw">name</span>: API_KEY
+        <span class="kw">valueFrom</span>:
+          <span class="kw">secretKeyRef</span>: { name: <span class="str">mi-app-secret</span>, key: API_KEY } <span class="cm"># ← 04</span>
+    <span class="kw">volumeMounts</span>:
+      - <span class="kw">name</span>: html-content
+        <span class="kw">mountPath</span>: /usr/share/nginx/html
+<span class="kw">volumes</span>:
+  - <span class="kw">name</span>: html-content
+    <span class="kw">configMap</span>:
+      <span class="kw">name</span>: <span class="hi2">mi-app-config</span>
+      <span class="kw">items</span>:                     <span class="cm"># solo esta clave</span>
+        - { key: index.html, path: index.html }</pre>
+      <div class="stack">
+        <div class="card accent-blue"><h3>⚙️ Un ConfigMap, dos usos</h3><p>Las claves llegan como <strong>variables</strong> (<code>envFrom</code>) y <code>index.html</code> como <strong>archivo</strong> montado sobre el directorio web de nginx. La página <strong>no está en la imagen</strong>.</p></div>
+        <div class="card accent-green"><h3>🏷️ El hilo son los labels</h3><p><code>selector.matchLabels</code>, <code>template.labels</code> y el <code>selector</code> del Service dicen <code>app: mi-app</code>. Si uno no coincide, se rompe la cadena.</p></div>
+        <div class="card accent-yellow"><h3>🛡️ Zero downtime</h3><p><code>maxSurge: 1</code> + <code>maxUnavailable: 0</code>: primero sube el nuevo, luego baja el viejo.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-demo">
+    <div class="demo-label">▶ Demo · despliegue completo</div>
+    <div class="demo-title">Un solo comando</div>
+    <div class="cols" style="max-width:1100px">
+      <pre class="sm">cat 08-ejercicio-integrador/todo-en-uno.yaml
+
+kubectl apply -f 08-ejercicio-integrador/todo-en-uno.yaml
+<span class="hi">namespace/mi-app created
+serviceaccount/mi-app-sa created
+configmap/mi-app-config created
+secret/mi-app-secret created
+deployment.apps/mi-app-deployment created
+service/mi-app-service created</span>
+
+kubectl rollout status deployment/mi-app-deployment -n mi-app
+kubectl get all -n mi-app
+curl http://192.168.109.144:30090</pre>
+      <div class="stack">
+        <div class="callout success"><strong>Orden de creación:</strong> los recursos se aplican en el orden del archivo. El Namespace va primero porque todo lo demás vive dentro de él.</div>
+        <div class="callout info">❓ <strong>¿De dónde salió el HTML?</strong> Del ConfigMap montado como volumen — no de la imagen de nginx.</div>
+        <div class="callout warn small">Sin acceso a los nodos: <code>kubectl port-forward svc/mi-app-service 8080:80 -n mi-app</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">Retos · <span>Niveles 1 y 2</span></div>
+    <div class="cols">
+      <div class="card accent-blue"><h3>🔍 Nivel 1 — Exploración <span class="muted small">(solo kubectl)</span></h3>
+        <ul class="step-list">
+          <li><span class="step-num">1</span><div>¿En qué nodos corren los 3 Pods?</div></li>
+          <li><span class="step-num">2</span><div>¿Cuál es la ClusterIP del Service? ¿Cuántos endpoints tiene?</div></li>
+          <li><span class="step-num">3</span><div>¿Qué hay montado en <code>/usr/share/nginx/html</code>?</div></li>
+          <li><span class="step-num">4</span><div>¿Cuál es el valor decodificado de <code>API_KEY</code>?</div></li>
+        </ul>
+        <p class="muted small">Herramientas: <code>get -o wide</code>, <code>get endpoints</code>, <code>exec … ls</code>, <code>jsonpath</code> + <code>base64 -d</code></p>
+      </div>
+      <div class="card accent-green"><h3>🔥 Nivel 2 — Modificar en caliente</h3>
+        <pre class="sm">kubectl edit configmap mi-app-config -n mi-app
+<span class="cm"># en index.html: agrega tu nombre</span>
+<span class="cm"># espera ~60 s</span>
+curl http://192.168.109.144:30090
+kubectl get pods -n mi-app   <span class="cm"># RESTARTS sigue en 0</span></pre>
+        <div class="callout info small" style="margin-top:10px">❓ La página cambió sin reiniciar. ¿Cambió también <code>APP_NAME</code> si la editas? Compruébalo con <code>exec … env</code> — <em>conecta con el Lab 03</em>.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-content">
+    <div class="slide-header">Retos · <span>Niveles 3, 4 y 5</span></div>
+    <div class="cols c3">
+      <div class="card accent-purple"><h3>📈 Nivel 3 — Escalar y actualizar</h3>
+        <pre class="sm">kubectl scale deploy mi-app-deployment \
+  --replicas=5 -n mi-app
+kubectl set image deploy/mi-app-deployment \
+  app=nginx:1.26 -n mi-app
+kubectl rollout status \
+  deploy/mi-app-deployment -n mi-app
+kubectl rollout undo \
+  deploy/mi-app-deployment -n mi-app</pre>
+      </div>
+      <div class="card accent-red"><h3>💥 Nivel 4 — Fallos</h3>
+        <ul>
+          <li>Borra un Pod: ¿cuántos hay después? ¿mismo nombre?</li>
+          <li>Escala a <code>0</code> y haz <code>curl</code>: ¿qué responde? ¿qué muestra <code>get endpoints</code>?</li>
+          <li>Regresa a 3 réplicas</li>
+        </ul>
+      </div>
+      <div class="card accent-yellow"><h3>🏆 Nivel 5 — Desafío final</h3>
+        <ul>
+          <li>Agrega un <strong>sidecar</strong> que imprima la fecha cada 10 s</li>
+          <li>Variable <code>BOOTCAMP_ALUMNO</code> con tu nombre desde un <strong>ConfigMap nuevo</strong></li>
+          <li>Cambia el Service a <strong>ClusterIP</strong> y demuestra que solo responde dentro del cluster</li>
+        </ul>
+        <p class="muted small">Sin borrar el namespace · editando el YAML + <code>apply</code></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TROUBLESHOOTING ══ -->
+  <div class="slide slide-content">
+    <div class="slide-header">Troubleshooting <span>frecuente</span></div>
+    <table style="font-size:14px">
+      <tr><th>Síntoma</th><th>Causa probable</th><th>Qué hacer</th></tr>
+      <tr><td><span class="badge red">ImagePullBackOff</span></td><td>Imagen o tag no existe / registry privado</td><td><code>describe pod</code> → Events; corregir imagen o <code>rollout undo</code></td></tr>
+      <tr><td><span class="badge red">CrashLoopBackOff</span></td><td>La app falla al arrancar</td><td><code>kubectl logs &lt;pod&gt; --previous</code></td></tr>
+      <tr><td>Init:0/1 eterno</td><td>El init container no termina</td><td><code>kubectl logs &lt;pod&gt; -c &lt;init&gt;</code></td></tr>
+      <tr><td>Service sin endpoints</td><td>Labels no coinciden o Pods no Ready</td><td><code>describe svc</code> (Selector) vs. <code>get pods --show-labels</code></td></tr>
+      <tr><td>NodePort "No route to host"</td><td>firewalld nftables vs. kube-proxy iptables</td><td><code>FirewallBackend=iptables</code> en workers</td></tr>
+      <tr><td>DNS interno falla</td><td><code>flannel.1</code>/<code>cni0</code> sin zona en firewalld</td><td>Agregarlas a la zona <code>trusted</code></td></tr>
+      <tr><td>Secret "no funciona"</td><td>Salto de línea dentro del base64</td><td><code>echo -n</code></td></tr>
+      <tr><td><code>get all --watch</code> falla</td><td>Limitación de kubectl 1.28 con <code>all</code></td><td><code>kubectl get pods --watch</code></td></tr>
+    </table>
+  </div>
+
+  <!-- ══ RESUMEN ══ -->
+  <div class="slide slide-content">
+    <div class="slide-header">Resumen de la <span>clase</span></div>
+    <table>
+      <tr><th>Recurso</th><th>Para qué sirve</th><th>Ejemplo del día</th></tr>
+      <tr><td><strong>Namespace</strong></td><td>Aislar entornos y equipos</td><td><code>bootcamp</code>, <code>mi-app</code></td></tr>
+      <tr><td><strong>Pod</strong></td><td>Ejecutar contenedores (efímero)</td><td><code>pod-nginx</code>, <code>pod-sidecar</code>, <code>pod-init</code></td></tr>
+      <tr><td><strong>ConfigMap</strong></td><td>Configuración no sensible (env o archivos)</td><td><code>app-config</code>, <code>index.html</code></td></tr>
+      <tr><td><strong>Secret</strong></td><td>Contraseñas y tokens (base64 ≠ cifrado)</td><td><code>db-credentials</code>, <code>API_KEY</code></td></tr>
+      <tr><td><strong>ServiceAccount</strong></td><td>Identidad de apps + RBAC</td><td><code>app-serviceaccount</code> → <code>pod-reader</code></td></tr>
+      <tr><td><strong>Deployment</strong></td><td>Réplicas, rolling update, rollback</td><td><code>nginx-deployment</code> 1.25 → 1.26</td></tr>
+      <tr><td><strong>Service</strong></td><td>IP estable, DNS y balanceo</td><td><code>backend-service</code>, NodePort 30080 / 30090</td></tr>
+    </table>
+  </div>
+
+  <!-- ══ PREGUNTAS ══ -->
+  <div class="slide slide-content">
+    <div class="slide-header">Preguntas de <span>cierre</span></div>
+    <ul class="step-list">
+      <li><span class="step-num purple">?</span><div><strong>¿Por qué no usar Pods sueltos en producción?</strong><br><span class="muted small">¿Qué hace el ReplicaSet que el Pod no?</span></div></li>
+      <li><span class="step-num purple">?</span><div><strong>¿ConfigMap como variable o como volumen?</strong><br><span class="muted small">¿De qué depende la decisión?</span></div></li>
+      <li><span class="step-num purple">?</span><div><strong>Si base64 no cifra, ¿qué protege a un Secret?</strong><br><span class="muted small">¿Qué usarías en un entorno real?</span></div></li>
+      <li><span class="step-num purple">?</span><div><strong>Liveness vs. readiness: ¿cuál reinicia y cuál saca del Service?</strong></div></li>
+      <li><span class="step-num purple">?</span><div><strong>Un Service sin endpoints: ¿cuáles son las dos primeras cosas que revisas?</strong></div></li>
+    </ul>
+  </div>
+
+  <!-- ══ CIERRE ══ -->
+  <div class="slide slide-close" style="background: radial-gradient(ellipse at 50% 40%, #0e2a1a 0%, var(--bg) 70%);">
+    <div class="close-icon">☸️</div>
+    <h2>Clase 1 completada</h2>
+    <p style="color:var(--muted); font-size:18px; margin-bottom:28px;">Fundamentos de Kubernetes</p>
+    <div class="cols" style="max-width:860px; gap:16px;">
+      <div class="card accent-green">
+        <h3>🧹 Limpieza final</h3>
+        <pre class="sm">kubectl delete namespace mi-app
+kubectl delete namespace bootcamp
+kubectl get namespaces</pre>
+      </div>
+      <div class="card accent-blue">
+        <h3>➡️ Tarea para la Clase 2</h3>
+        <p style="font-size:14px">① ¿Cómo guardo datos que sobrevivan al reinicio del Pod?<br>② ¿Cómo expongo varios servicios en el puerto 80 con rutas distintas?</p>
+        <p class="small" style="margin-top:8px"><strong>Próxima clase:</strong> PV, PVC, StorageClass NFS, StatefulSet y DaemonSet</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<nav class="nav">
+  <button onclick="prev()">← Prev</button>
+  <span id="counter">1 / 1</span>
+  <button onclick="next()">Next →</button>
+  <span style="margin-left:8px; font-size:11px; opacity:.5">← → o espacio</span>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let cur = 0;
+  function show(n) {
+    slides[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(n, slides.length - 1));
+    slides[cur].classList.add('active');
+    document.getElementById('counter').textContent = (cur + 1) + ' / ' + slides.length;
+    document.getElementById('progress').style.width = ((cur + 1) / slides.length * 100) + '%';
+  }
+  function next() { show(cur + 1); }
+  function prev() { show(cur - 1); }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+  });
+  let tx = 0;
+  document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) dx < 0 ? next() : prev();
+  });
+  show(0);
+</script>
+</body>
+</html>
