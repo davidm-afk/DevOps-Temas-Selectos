@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podman – Contenedores sin Daemon</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface2: #21262d;
+            --border: #30363d;
+            --accent: #f97316;
+            --accent2: #fb923c;
+            --green: #3fb950;
+            --blue: #58a6ff;
+            --purple: #bc8cff;
+            --red: #ff7b72;
+            --yellow: #e3b341;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Syne', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Animated grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(249, 115, 22, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(249, 115, 22, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Top bar */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 30px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .podman-logo {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 14px;
+            color: #000;
+        }
+
+        .topbar-title {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .topbar-title span {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .slide-counter {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 5px 14px;
+            border-radius: 20px;
+        }
+
+        .slide-counter .cur {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            height: 2px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        /* Slides area */
+        .slides-area {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            padding: 40px 60px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateX(40px);
+            pointer-events: none;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+
+        .slide.exit {
+            opacity: 0;
+            transform: translateX(-40px);
+        }
+
+        /* Slide types */
+        .slide-cover {
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* Typography */
+        .slide-tag {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 3.2em;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        h1 .accent {
+            color: var(--accent);
+        }
+
+        h2 {
+            font-size: 2em;
+            font-weight: 800;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2::before {
+            content: '';
+            width: 4px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .subtitle {
+            font-family: var(--mono);
+            font-size: 1.1em;
+            color: var(--muted);
+            margin-bottom: 40px;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(249, 115, 22, 0.12);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            color: var(--accent2);
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+        }
+
+        /* Info box */
+        .info-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            font-size: 1em;
+            line-height: 1.7;
+            color: #c9d1d9;
+        }
+
+        .info-box.green {
+            border-left-color: var(--green);
+        }
+
+        .info-box.blue {
+            border-left-color: var(--blue);
+        }
+
+        .info-box.purple {
+            border-left-color: var(--purple);
+        }
+
+        .info-box.yellow {
+            border-left-color: var(--yellow);
+        }
+
+        .info-box strong {
+            display: block;
+            font-family: var(--mono);
+            font-size: 0.85em;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+
+        .info-box.green strong {
+            color: var(--green);
+        }
+
+        .info-box.blue strong {
+            color: var(--blue);
+        }
+
+        .info-box.purple strong {
+            color: var(--purple);
+        }
+
+        .info-box.yellow strong {
+            color: var(--yellow);
+        }
+
+        /* Command block */
+        .cmd-block {
+            background: #0a0e13;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin: 14px 0;
+            overflow: hidden;
+        }
+
+        .cmd-header {
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .cmd-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .cmd-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .cmd-dots span:nth-child(1) {
+            background: #ff5f56;
+        }
+
+        .cmd-dots span:nth-child(2) {
+            background: #ffbd2e;
+        }
+
+        .cmd-dots span:nth-child(3) {
+            background: #27c93f;
+        }
+
+        .cmd-label {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #000;
+        }
+
+        .cmd-body {
+            padding: 16px 20px;
+            font-family: var(--mono);
+            font-size: 0.9em;
+            line-height: 1.8;
+        }
+
+        .prompt {
+            color: var(--green);
+        }
+
+        .cmd {
+            color: var(--text);
+        }
+
+        .flag {
+            color: var(--blue);
+        }
+
+        .arg {
+            color: var(--yellow);
+        }
+
+        .comment {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .output {
+            color: var(--muted);
+            font-size: 0.9em;
+        }
+
+        /* Grid layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
+        }
+
+        /* Command card */
+        .cmd-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            transition: border-color 0.2s, transform 0.2s;
+            cursor: default;
+        }
+
+        .cmd-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .cmd-card-name {
+            font-family: var(--mono);
+            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+
+        .cmd-card-desc {
+            font-size: 0.85em;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .cmd-card-syntax {
+            font-family: var(--mono);
+            font-size: 0.78em;
+            color: var(--blue);
+            margin-top: 10px;
+            padding: 6px 10px;
+            background: rgba(88, 166, 255, 0.08);
+            border-radius: 5px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--mono);
+            font-size: 0.88em;
+            margin: 16px 0;
+        }
+
+        th {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            text-align: left;
+            color: var(--accent);
+            font-size: 0.8em;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        td {
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            color: var(--muted);
+        }
+
+        td:first-child {
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        tr:hover td {
+            background: rgba(249, 115, 22, 0.04);
+        }
+
+        /* Quiz */
+        .quiz-q {
+            font-size: 1.15em;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .quiz-option {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            font-family: var(--mono);
+            font-size: 0.95em;
+            color: var(--text);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quiz-option .opt-label {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 0.85em;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--accent);
+            background: rgba(249, 115, 22, 0.06);
+        }
+
+        .quiz-option.correct {
+            border-color: var(--green);
+            background: rgba(63, 185, 80, 0.1);
+        }
+
+        .quiz-option.correct .opt-label {
+            background: var(--green);
+            color: #000;
+            border-color: var(--green);
+        }
+
+        .quiz-option.incorrect {
+            border-color: var(--red);
+            background: rgba(255, 123, 114, 0.1);
+        }
+
+        .quiz-option.incorrect .opt-label {
+            background: var(--red);
+            color: #000;
+            border-color: var(--red);
+        }
+
+        .quiz-feedback {
+            text-align: center;
+            margin-top: 20px;
+            font-family: var(--mono);
+            font-size: 1.1em;
+            font-weight: 600;
+            min-height: 32px;
+        }
+
+        /* Cover specific */
+        .cover-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 30px rgba(249, 115, 22, 0.4));
+        }
+
+        .cover-meta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .cover-chip {
+            font-family: var(--mono);
+            font-size: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 6px 16px;
+            border-radius: 20px;
+            color: var(--muted);
+        }
+
+        .cover-chip span {
+            color: var(--accent);
+        }
+
+        /* Comparison */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .compare-col {
+            padding: 20px;
+        }
+
+        .compare-col:first-child {
+            border-right: 1px solid var(--border);
+        }
+
+        .compare-col h3 {
+            font-family: var(--mono);
+            font-size: 0.9em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .compare-col.docker h3 {
+            color: var(--blue);
+        }
+
+        .compare-col.podman h3 {
+            color: var(--accent);
+        }
+
+        .compare-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 10px 0;
+            font-family: var(--mono);
+            font-size: 0.82em;
+            color: var(--muted);
+        }
+
+        .compare-item::before {
+            content: '▸';
+            flex-shrink: 0;
+        }
+
+        .compare-col.docker .compare-item::before {
+            color: var(--blue);
+        }
+
+        .compare-col.podman .compare-item::before {
+            color: var(--accent);
+        }
+
+        /* Navigation */
+        .navigation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .nav-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #000;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .nav-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .nav-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-dot.active {
+            background: var(--accent);
+            width: 20px;
+            border-radius: 3px;
+        }
+
+        .nav-dot:hover {
+            background: var(--muted);
+        }
+
+        /* Scroll custom */
+        .slide::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        /* Diagram */
+        .arch-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin: 20px 0;
+        }
+
+        .arch-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            font-family: var(--mono);
+            font-size: 0.85em;
+        }
+
+        .arch-box.highlight-box {
+            border-color: var(--accent);
+            background: rgba(249, 115, 22, 0.08);
+        }
+
+        .arch-box .box-title {
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .arch-box .box-sub {
+            color: var(--muted);
+            font-size: 0.85em;
+        }
+
+        .arch-arrow {
+            color: var(--muted);
+            font-size: 1.4em;
+            padding: 0 8px;
+        }
+
+        /* Lifecycle flow */
+        .lifecycle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .lc-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lc-icon {
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            width: 70px;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4em;
+            cursor: default;
+            transition: all 0.2s;
+        }
+
+        .lc-icon:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .lc-label {
+            font-family: var(--mono);
+            font-size: 0.72em;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .lc-arrow {
+            color: var(--border);
+            font-size: 1.2em;
+            padding: 0 4px;
+            margin-top: -18px;
+        }
+
+        .small {
+            font-size: 0.88em;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .tag-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+
+        .tag {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            border: 1px solid;
+        }
+
+        .tag-green {
+            color: var(--green);
+            border-color: rgba(63, 185, 80, 0.4);
+            background: rgba(63, 185, 80, 0.08);
+        }
+
+        .tag-blue {
+            color: var(--blue);
+            border-color: rgba(88, 166, 255, 0.4);
+            background: rgba(88, 166, 255, 0.08);
+        }
+
+        .tag-orange {
+            color: var(--accent);
+            border-color: rgba(249, 115, 22, 0.4);
+            background: rgba(249, 115, 22, 0.08);
+        }
+
+        .tag-purple {
+            color: var(--purple);
+            border-color: rgba(188, 140, 255, 0.4);
+            background: rgba(188, 140, 255, 0.08);
+        }
+
+        /* columns */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- Top bar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <div class="podman-logo">P</div>
+                <div class="topbar-title"><span>PODMAN</span> — Contenedores sin Daemon · Rocky Linux 9</div>
+            </div>
+            <div class="slide-counter">
+                Diapositiva <span class="cur" id="cur">1</span> / <span id="tot">1</span>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+         SLIDE 1 — Portada
+    ════════════════════════════════════════════════════ -->
+        <div class="slides-area">
+            <div class="slide slide-cover active" id="s0">
+                <div class="cover-icon">🦭</div>
+                <div class="badge">● Rocky Linux 9 · Diplomado Linux Avanzado</div>
+                <h1><span class="accent">Podman</span><br>Contenedores sin Daemon</h1>
+                <p class="subtitle">Comandos esenciales: pull · build · run · start · stop · push · exec · rm</p>
+                <div class="cover-meta">
+                    <div class="cover-chip">Versión <span>Podman 4.x</span></div>
+                    <div class="cover-chip">Modo <span>rootless</span></div>
+                    <div class="cover-chip">OCI <span>Compatible</span></div>
+                    <div class="cover-chip">Sin daemon <span>✓</span></div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+             SLIDE 2 — ¿Qué es Podman?
+        ════════════════════════════════════════════════════ -->
+            <div class="slide" id="s1">
+                <div class="slide-tag">Introducción</div>
+                <h2>¿Qué es Podman?</h2>
+
+                <div class="two-col">
+                    <div>
+                        <div class="info-box">
+                            <strong>Definición</strong>
+                            Podman (POD MANager) es un motor de contenedores <em>sin daemon</em> que permite crear,
+                            gestionar y ejecutar contenedores e imágenes OCI sin necesidad de un proceso raíz
+                            persistente.
+                        </div>
+                        <div class="info-box green">
+                            <strong>Ventaja clave</strong>
+                            Podman puede ejecutar contenedores como usuario normal (<strong>rootless</strong>),
+                            mejorando drásticamente la seguridad del sistema host.
+                        </div>
+                        <div class="info-box blue">
+                            <strong>Compatibilidad Docker</strong>
+                            Los comandos son prácticamente idénticos a Docker. Puedes usar <code
+                                style="color:var(--accent)">alias docker=podman</code> en la mayoría de los casos.
+                        </div>
+                    </div>
+                    <div>
+                        <div style="margin-bottom:14px">
+                            <p style="font-family:var(--mono);font-size:0.85em;color:var(--muted);margin-bottom:10px;">
+                                ARQUITECTURA COMPARADA</p>
+                            <div class="compare-grid">
+                                <div class="compare-col docker">
+                                    <h3>🐳 Docker</h3>
+                                    <div class="compare-item">CLI → dockerd (daemon root)</div>
+                                    <div class="compare-item">Daemon siempre activo</div>
+                                    <div class="compare-item">Requiere grupo docker</div>
+                                    <div class="compare-item">Proceso único centralizado</div>
+                                </div>
+                                <div class="compare-col podman">
+                                    <h3>🦭 Podman</h3>
+                                    <div class="compare-item">CLI → fork/exec directo</div>
+                                    <div class="compare-item">Sin daemon persistente</div>
+                                    <div class="compare-item">Rootless por defecto</div>
+                                    <div class="compare-item">Soporte nativo de Pods</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tag-row">
+                            <span class="tag tag-green">OCI Runtime</span>
+                            <span class="tag tag-blue">crun / runc</span>
+                            <span class="tag tag-orange">systemd integration</span>
+                            <span class="tag tag-purple">Pods nativo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+             SLIDE 3 — Ciclo de vida de un contenedor
+        ════════════════════════════════════════════════════ -->
+            <div class="slide" id="s2">
+                <div class="slide-tag">Conceptos Fundamentales</div>
+                <h2>Ciclo de Vida de un Contenedor</h2>
+
+                <div class="lifecycle">
+                    <div class="lc-step">
+                        <div class="lc-icon">🖼️</div>
+                        <div class="lc-label">Imagen<br>Registry</div>
+                    </div>
+                    <div class="lc-arrow">→</div>
+                    <div class="lc-step">
+                        <div class="lc-icon" style="border-color:var(--blue)">⬇️</div>
+                        <div class="lc-label">pull<br>Descarga</div>
+                    </div>
+                    <div class="lc-arrow">→</div>
+                    <div class="lc-step">
+                        <div class="lc-icon" style="border-color:var(--green)">▶️</div>
+                        <div class="lc-label">run<br>Crear+Iniciar</div>
+                    </div>
+                    <div class="lc-arrow">→</div>
+                    <div class="lc-step">
+                        <div class="lc-icon" style="border-color:var(--yellow)">⏸️</div>
+                        <div class="lc-label">stop<br>Detener</div>
+                    </div>
+                    <div class="lc-arrow">→</div>
+                    <div class="lc-step">
+                        <div class="lc-icon" style="border-color:var(--accent)">▶️</div>
+                        <div class="lc-label">start<br>Reiniciar</div>
+                    </div>
+                    <div class="lc-arrow">→</div>
+                    <div class="lc-step">
+                        <div class="lc-icon" style="border-color:var(--red)">🗑️</div>
+                        <div class="lc-label">rm<br>Eliminar</div>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-top:10px">
+                    <div class="info-box">
+                        <strong>Imagen vs Contenedor</strong>
+                        Una <strong style="color:var(--blue)">imagen</strong> es la plantilla de solo lectura (como una
+                        clase en POO). Un <strong style="color:var(--green)">contenedor</strong> es la instancia en
+                        ejecución (como el objeto creado).
+                    </div>
+                    <div class="info-box purple">
+                        <strong>Registries</strong>
+                        Las imágenes se almacenan en registros: <code style="color:var(--purple)">docker.io</code>
+                        (Docker Hub), <code style="color:var(--purple)">quay.io</code> (Red Hat), o un registry privado
+                        como Harbor.
+                    </div>
+                </div>
+
+                <div class="cmd-block">
+                    <div class="cmd-header">
+                        <div class="cmd-dots"><span></span><span></span><span></span></div>
+                        <span class="cmd-label">Verificar instalación</span>
+                        <button class="copy-btn" onclick="copyCmd(this,'podman version && podman info')">COPIAR</button>
+                    </div>
+                    <div class="cmd-body">
+                        <span class="prompt">$ </span><span class="cmd">podman version</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman info</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman <span class="flag">--help</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+             SLIDE 4 — podman pull
+        ════════════════════════════════════════════════════ -->
+            <div class="slide" id="s3">
+                <div class="slide-tag">Comando #1</div>
+                <h2>podman pull — Descargar imágenes</h2>
+
+                <div class="info-box">
+                    <strong>Descripción</strong>
+                    Descarga una imagen desde un registro remoto (registry) al almacenamiento local. Si no se especifica
+                    tag, usa <code style="color:var(--accent)">:latest</code> por defecto.
+                </div>
+
+                <div class="cmd-block">
+                    <div class="cmd-header">
+                        <div class="cmd-dots"><span></span><span></span><span></span></div>
+                        <span class="cmd-label">Sintaxis y ejemplos</span>
+                        <button class="copy-btn"
+                            onclick="copyCmd(this,'podman pull [registry/]imagen[:tag]')">COPIAR</button>
+                    </div>
+                    <div class="cmd-body">
+                        <span class="comment"># Sintaxis básica</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman pull <span
+                                class="arg">[registry/]imagen[:tag]</span></span><br><br>
+
+                        <span class="comment"># Descargar imagen de Rocky Linux 9</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman pull <span
+                                class="arg">rockylinux:9</span></span><br><br>
+
+                        <span class="comment"># Descargar desde registry específico</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman pull <span
+                                class="arg">docker.io/library/nginx:latest</span></span><br><br>
+
+                        <span class="comment"># Descargar versión específica</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman pull <span
+                                class="arg">quay.io/centos/centos:stream9</span></span><br><br>
+
+                        <span class="comment"># Listar imágenes descargadas</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman images</span><br>
+                        <span class="output">REPOSITORY TAG IMAGE ID CREATED SIZE</span><br>
+                        <span class="output">rockylinux 9 a1b2c3d4e5f6 2 days ago 176 MB</span>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="info-box green">
+                        <strong>Flags útiles</strong>
+                        <code style="color:var(--green)">--arch</code> especifica arquitectura (amd64/arm64)<br>
+                        <code style="color:var(--green)">--quiet / -q</code> solo muestra el Image ID<br>
+                        <code style="color:var(--green)">--tls-verify=false</code> para registries sin TLS
+                    </div>
+                    <div class="info-box yellow">
+                        <strong>Buscar imágenes</strong>
+                        <span class="prompt" style="font-family:var(--mono);font-size:0.9em">$ </span><code
+                            style="color:var(--yellow)">podman search nginx</code><br>
+                        Busca en todos los registros configurados en <code>/etc/containers/registries.conf</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+             SLIDE 5 — podman build
+        ════════════════════════════════════════════════════ -->
+            <div class="slide" id="s4">
+                <div class="slide-tag">Comando #2</div>
+                <h2>podman build — Construir imágenes</h2>
+
+                <div class="two-col">
+                    <div>
+                        <div class="info-box">
+                            <strong>Descripción</strong>
+                            Construye una imagen personalizada leyendo instrucciones de un
+                            <strong>Containerfile</strong> (o Dockerfile). Cada instrucción crea una capa inmutable.
+                        </div>
+
+                        <div class="cmd-block">
+                            <div class="cmd-header">
+                                <div class="cmd-dots"><span></span><span></span><span></span></div>
+                                <span class="cmd-label">Containerfile ejemplo</span>
+                                <button class="copy-btn"
+                                    onclick="copyCmd(this,`FROM rockylinux:9\nRUN dnf install -y nginx && dnf clean all\nCOPY index.html /usr/share/nginx/html/\nEXPOSE 80\nCMD [\"
+                                    nginx\",\"-g\",\"daemon off;\"]`)">COPIAR</button>
+                            </div>
+                            <div class="cmd-body">
+                                <span class="flag">FROM</span> <span class="arg">rockylinux:9</span><br>
+                                <span class="flag">RUN</span> <span class="cmd">dnf install -y nginx && dnf clean
+                                    all</span><br>
+                                <span class="flag">COPY</span> <span class="arg">index.html</span> <span
+                                    class="cmd">/usr/share/nginx/html/</span><br>
+                                <span class="flag">EXPOSE</span> <span class="arg">80</span><br>
+                                <span class="flag">CMD</span> <span class="cmd">["nginx","-g","daemon off;"]</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="cmd-block">
+                            <div class="cmd-header">
+                                <div class="cmd-dots"><span></span><span></span><span></span></div>
+                                <span class="cmd-label">Comandos de construcción</span>
+                                <button class="copy-btn"
+                                    onclick="copyCmd(this,'podman build -t mi-nginx:1.0 .\npodman build -t mi-nginx:1.0 -f Containerfile .\npodman build --no-cache -t mi-app:latest .\npodman images')">COPIAR</button>
+                            </div>
+                            <div class="cmd-body">
+                                <span class="comment"># Build básico (punto = directorio actual)</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman build <span
+                                        class="flag">-t</span> <span class="arg">mi-nginx:1.0</span> .</span><br><br>
+
+                                <span class="comment"># Especificando Containerfile</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman build <span
+                                        class="flag">-t</span> <span class="arg">mi-nginx:1.0</span> <span
+                                        class="flag">-f</span> Containerfile .</span><br><br>
+
+                                <span class="comment"># Sin caché (fuerza rebuild completo)</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman build <span
+                                        class="flag">--no-cache</span> <span class="flag">-t</span> <span
+                                        class="arg">mi-app:latest</span> .</span><br><br>
+
+                                <span class="comment"># Ver historial de capas</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman history <span
+                                        class="arg">mi-nginx:1.0</span></span>
+                            </div>
+                        </div>
+
+                        <div class="info-box blue">
+                            <strong>Instrucciones Containerfile</strong>
+                            <code style="color:var(--blue)">FROM</code> · <code>RUN</code> · <code>COPY</code> ·
+                            <code>ADD</code> · <code>ENV</code> · <code>ARG</code> · <code>EXPOSE</code> ·
+                            <code>VOLUME</code> · <code>WORKDIR</code> · <code>USER</code> · <code>CMD</code> ·
+                            <code>ENTRYPOINT</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+             SLIDE 6 — podman run
+        ════════════════════════════════════════════════════ -->
+            <div class="slide" id="s5">
+                <div class="slide-tag">Comando #3 — El más importante</div>
+                <h2>podman run — Ejecutar contenedores</h2>
+
+                <div class="info-box">
+                    <strong>Descripción</strong>
+                    Crea <em>y</em> ejecuta un nuevo contenedor desde una imagen. Equivale a <code
+                        style="color:var(--accent)">podman create</code> + <code
+                        style="color:var(--accent)">podman start</code> en un solo paso.
+                </div>
+
+                <div class="cmd-block">
+                    <div class="cmd-header">
+                        <div class="cmd-dots"><span></span><span></span><span></span></div>
+                        <span class="cmd-label">Ejemplos esenciales</span>
+                        <button class="copy-btn"
+                            onclick="copyCmd(this, 'podman run hello-world\npodman run -it rockylinux:9 bash\npodman run -d -p 8080:80 --name mi-web nginx\npodman run -d -v /datos:/datos:Z --name db postgres:15\npodman run --rm -it alpine sh')">COPIAR</button>
+                    </div>
+                    <div class="cmd-body">
+                        <span class="comment"># Contenedor simple (se elimina al salir)</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman run <span
+                                class="arg">hello-world</span></span><br><br>
+
+                        <span class="comment"># Interactivo con terminal (-i interactivo, -t tty)</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman run <span class="flag">-it</span> <span
+                                class="arg">rockylinux:9</span> bash</span><br><br>
+
+                        <span class="comment"># En segundo plano (-d), con puerto (-p host:container) y
+                            nombre</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman run <span class="flag">-d -p</span> <span
+                                class="arg">8080:80</span> <span class="flag">--name</span> <span
+                                class="arg">mi-web</span> nginx</span><br><br>
+
+                        <span class="comment"># Con volumen persistente (-v) y contexto SELinux (:Z)</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman run <span class="flag">-d -v</span> <span
+                                class="arg">/datos:/datos:Z</span> <span class="flag">--name</span> <span
+                                class="arg">db</span> postgres:15</span><br><br>
+
+                        <span class="comment"># Auto-eliminación al terminar (--rm)</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman run <span class="flag">--rm -it</span>
+                            <span class="arg">alpine</span> sh</span>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="margin-top:10px">
+                    <div class="info-box">
+                        <strong>Modo</strong>
+                        <code style="color:var(--accent)">-d</code> detached (background)<br>
+                        <code style="color:var(--accent)">-it</code> interactivo<br>
+                        <code style="color:var(--accent)">--rm</code> eliminar al salir
+                    </div>
+                    <div class="info-box blue">
+                        <strong>Red / Puertos</strong>
+                        <code style="color:var(--blue)">-p 8080:80</code> puertos<br>
+                        <code style="color:var(--blue)">--network host</code><br>
+                        <code style="color:var(--blue)">--network none</code>
+                    </div>
+                    <div class="info-box green">
+                        <strong>Recursos</strong>
+                        <code style="color:var(--green)">--memory 512m</code><br>
+                        <code style="color:var(--green)">--cpus 1.5</code><br>
+                        <code style="color:var(--green)">-e VAR=valor</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+             SLIDE 7 — start / stop / restart
+        ════════════════════════════════════════════════════ -->
+            <div class="slide" id="s6">
+                <div class="slide-tag">Comandos #4 · #5 · #6</div>
+                <h2>start · stop · restart — Control de estado</h2>
+
+                <div class="grid-3" style="margin-bottom:16px">
+                    <div class="cmd-card">
+                        <div class="cmd-card-name">▶ podman start</div>
+                        <div class="cmd-card-desc">Inicia uno o más contenedores <strong>ya existentes</strong> que
+                            están detenidos.</div>
+                        <div class="cmd-card-syntax">podman start [nombre|ID]</div>
+                    </div>
+                    <div class="cmd-card">
+                        <div class="cmd-card-name" style="color:var(--yellow)">⏹ podman stop</div>
+                        <div class="cmd-card-desc">Envía SIGTERM al contenedor. Espera 10s y si no para, envía SIGKILL.
+                        </div>
+                        <div class="cmd-card-syntax" style="color:var(--yellow)">podman stop [-t secs] [nombre|ID]</div>
+                    </div>
+                    <div class="cmd-card">
+                        <div class="cmd-card-name" style="color:var(--blue)">🔄 podman restart</div>
+                        <div class="cmd-card-desc">Detiene y vuelve a iniciar el contenedor. Útil para aplicar cambios
+                            de config.</div>
+                        <div class="cmd-card-syntax" style="color:var(--blue)">podman restart [nombre|ID]</div>
+                    </div>
+                </div>
+
+                <div class="cmd-block">
+                    <div class="cmd-header">
+                        <div class="cmd-dots"><span></span><span></span><span></span></div>
+                        <span class="cmd-label">Gestión de estado</span>
+                        <button class="copy-btn"
+                            onclick="copyCmd(this,'podman stop mi-web\npodman start mi-web\npodman restart mi-web\npodman stop -t 5 mi-web\npodman stop $(podman ps -q)\npodman ps -a')">COPIAR</button>
+                    </div>
+                    <div class="cmd-body">
+                        <span class="comment"># Detener contenedor (espera 10s por defecto)</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman stop <span
+                                class="arg">mi-web</span></span><br><br>
+
+                        <span class="comment"># Iniciar contenedor detenido</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman start <span
+                                class="arg">mi-web</span></span><br><br>
+
+                        <span class="comment"># Reiniciar contenedor</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman restart <span
+                                class="arg">mi-web</span></span><br><br>
+
+                        <span class="comment"># Stop con timeout personalizado (5 segundos)</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman stop <span class="flag">-t 5</span> <span
+                                class="arg">mi-web</span></span><br><br>
+
+                        <span class="comment"># Detener TODOS los contenedores activos</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman stop <span class="flag">$(</span>podman
+                            ps <span class="flag">-q)</span></span><br><br>
+
+                        <span class="comment"># Ver todos los contenedores (activos e inactivos)</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman ps <span
+                                class="flag">-a</span></span><br>
+                        <span class="output">CONTAINER ID IMAGE COMMAND STATUS NAMES</span><br>
+                        <span class="output">a1b2c3d4e5f6 nginx nginx -g Up 2h mi-web</span>
+                    </div>
+                </div>
+
+                <div class="info-box yellow">
+                    <strong>⚠️ Señales Linux</strong>
+                    <code style="color:var(--yellow)">podman kill -s SIGKILL mi-web</code> — fuerza terminación
+                    inmediata sin esperar.<br>
+                    <code style="color:var(--yellow)">podman pause mi-web</code> / <code>podman unpause mi-web</code> —
+                    congela/descongela procesos.
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+             SLIDE 8 — exec / logs / inspect
+        ════════════════════════════════════════════════════ -->
+            <div class="slide" id="s7">
+                <div class="slide-tag">Comandos #7 · #8 · #9</div>
+                <h2>exec · logs · inspect — Inspección</h2>
+
+                <div class="cmd-block">
+                    <div class="cmd-header">
+                        <div class="cmd-dots"><span></span><span></span><span></span></div>
+                        <span class="cmd-label">exec — Ejecutar comandos dentro del contenedor</span>
+                        <button class="copy-btn"
+                            onclick="copyCmd(this,'podman exec -it mi-web bash\npodman exec mi-web cat /etc/nginx/nginx.conf\npodman exec -it mi-web /bin/sh')">COPIAR</button>
+                    </div>
+                    <div class="cmd-body">
+                        <span class="comment"># Abrir shell interactiva en contenedor en ejecución</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman exec <span class="flag">-it</span> <span
+                                class="arg">mi-web</span> bash</span><br><br>
+
+                        <span class="comment"># Ejecutar comando sin shell interactiva</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman exec <span class="arg">mi-web</span> cat
+                            /etc/nginx/nginx.conf</span><br><br>
+
+                        <span class="comment"># Para contenedores sin bash, usar sh</span><br>
+                        <span class="prompt">$ </span><span class="cmd">podman exec <span class="flag">-it</span> <span
+                                class="arg">mi-web</span> /bin/sh</span>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="cmd-block">
+                        <div class="cmd-header">
+                            <div class="cmd-dots"><span></span><span></span><span></span></div>
+                            <span class="cmd-label">logs</span>
+                            <button class="copy-btn"
+                                onclick="copyCmd(this,'podman logs mi-web\npodman logs -f mi-web\npodman logs --tail 50 mi-web')">COPIAR</button>
+                        </div>
+                        <div class="cmd-body">
+                            <span class="comment"># Ver logs del contenedor</span><br>
+                            <span class="prompt">$ </span><span class="cmd">podman logs <span
+                                    class="arg">mi-web</span></span><br><br>
+                            <span class="comment"># Seguir logs en tiempo real</span><br>
+                            <span class="prompt">$ </span><span class="cmd">podman logs <span class="flag">-f</span>
+                                <span class="arg">mi-web</span></span><br><br>
+                            <span class="comment"># Últimas 50 líneas</span><br>
+                            <span class="prompt">$ </span><span class="cmd">podman logs <span class="flag">--tail
+                                    50</span> <span class="arg">mi-web</span></span>
+                        </div>
+                    </div>
+                    <div class="cmd-block">
+                        <div class="cmd-header">
+                            <div class="cmd-dots"><span></span><span></span><span></span></div>
+                            <span class="cmd-label">inspect</span>
+                            <button class="copy-btn"
+                                onclick="copyCmd(this,'podman inspect mi-web\npodman inspect mi-web | python3 -m json.tool\npodman inspect --format=\"
+                                {{.State.Status}}\" mi-web')">COPIAR</button>
+                        </div>
+                        <div class="cmd-body">
+                            <span class="comment"># JSON detallado del contenedor</span><br>
+                            <span class="prompt">$ </span><span class="cmd">podman inspect <span
+                                    class="arg">mi-web</span></span><br><br>
+                            <span class="comment"># Formato legible con Python</span><br>
+                            <span class="prompt">$ </span><span class="cmd">podman inspect <span
+                                    class="arg">mi-web</span> | python3 -m json.tool</span><br><br>
+                            <span class="comment"># Solo un campo específico</span><br>
+                            <span class="prompt">$ </span><span class="cmd">podman inspect <span
+                                    class="flag">--format</span>="&#123;&#123;.State.Status&#125;&#125;" <span
+                                    class="arg">mi-web</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+             SLIDE 9 — push + rm
+        ════════════════════════════════════════════════════ -->
+            <div class="slide" id="s8">
+                <div class="slide-tag">Comandos #10 · #11</div>
+                <h2>push · rm — Publicar y limpiar</h2>
+
+                <div class="two-col">
+                    <div>
+                        <div class="info-box">
+                            <strong>podman push — Subir imágenes</strong>
+                            Envía una imagen local a un registry remoto. Requiere autenticación previa con <code
+                                style="color:var(--accent)">podman login</code>.
+                        </div>
+
+                        <div class="cmd-block">
+                            <div class="cmd-header">
+                                <div class="cmd-dots"><span></span><span></span><span></span></div>
+                                <span class="cmd-label">push</span>
+                                <button class="copy-btn"
+                                    onclick="copyCmd(this,'podman login docker.io\npodman tag mi-nginx:1.0 docker.io/usuario/mi-nginx:1.0\npodman push docker.io/usuario/mi-nginx:1.0\npodman login quay.io')">COPIAR</button>
+                            </div>
+                            <div class="cmd-body">
+                                <span class="comment"># 1. Autenticarse en el registry</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman login <span
+                                        class="arg">docker.io</span></span><br><br>
+
+                                <span class="comment"># 2. Etiquetar con nombre completo del registry</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman tag <span
+                                        class="arg">mi-nginx:1.0 docker.io/usuario/mi-nginx:1.0</span></span><br><br>
+
+                                <span class="comment"># 3. Hacer push</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman push <span
+                                        class="arg">docker.io/usuario/mi-nginx:1.0</span></span><br><br>
+
+                                <span class="comment"># Registry privado (quay.io, Harbor, etc)</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman login <span
+                                        class="arg">quay.io</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="info-box red" style="border-left-color:var(--red)">
+                            <strong style="color:var(--red)">podman rm / rmi — Eliminar</strong>
+                            <code style="color:var(--red)">rm</code> elimina contenedores (deben estar detenidos).<br>
+                            <code style="color:var(--red)">rmi</code> elimina imágenes locales.
+                        </div>
+
+                        <div class="cmd-block">
+                            <div class="cmd-header">
+                                <div class="cmd-dots"><span></span><span></span><span></span></div>
+                                <span class="cmd-label">rm / rmi / limpieza</span>
+                                <button class="copy-btn"
+                                    onclick="copyCmd(this,'podman rm mi-web\npodman rm -f mi-web\npodman rm $(podman ps -aq)\npodman rmi mi-nginx:1.0\npodman image prune\npodman system prune')">COPIAR</button>
+                            </div>
+                            <div class="cmd-body">
+                                <span class="comment"># Eliminar contenedor detenido</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman rm <span
+                                        class="arg">mi-web</span></span><br><br>
+
+                                <span class="comment"># Forzar eliminación (aunque esté corriendo)</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman rm <span class="flag">-f</span>
+                                    <span class="arg">mi-web</span></span><br><br>
+
+                                <span class="comment"># Eliminar TODOS los contenedores parados</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman rm <span
+                                        class="flag">$(</span>podman ps <span class="flag">-aq)</span></span><br><br>
+
+                                <span class="comment"># Eliminar imagen</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman rmi <span
+                                        class="arg">mi-nginx:1.0</span></span><br><br>
+
+                                <span class="comment"># Limpiar todo lo no utilizado</span><br>
+                                <span class="prompt">$ </span><span class="cmd">podman system prune</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+             SLIDE 10 — Referencia rápida
+        ════════════════════════════════════════════════════ -->
+            <div class="slide" id="s9">
+                <div class="slide-tag">Referencia</div>
+                <h2>Cheat Sheet — Comandos Esenciales</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Comando</th>
+                            <th>Descripción</th>
+                            <th>Ejemplo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>podman pull</td>
+                            <td>Descarga imagen del registry</td>
+                            <td><code>podman pull nginx:latest</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman build</td>
+                            <td>Construye imagen desde Containerfile</td>
+                            <td><code>podman build -t app:1.0 .</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman run</td>
+                            <td>Crea y ejecuta contenedor</td>
+                            <td><code>podman run -d -p 80:80 nginx</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman start</td>
+                            <td>Inicia contenedor detenido</td>
+                            <td><code>podman start mi-web</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman stop</td>
+                            <td>Detiene contenedor (SIGTERM)</td>
+                            <td><code>podman stop mi-web</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman restart</td>
+                            <td>Reinicia contenedor</td>
+                            <td><code>podman restart mi-web</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman exec</td>
+                            <td>Ejecuta comando en contenedor</td>
+                            <td><code>podman exec -it mi-web bash</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman logs</td>
+                            <td>Ver logs del contenedor</td>
+                            <td><code>podman logs -f mi-web</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman push</td>
+                            <td>Sube imagen al registry</td>
+                            <td><code>podman push docker.io/user/app</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman rm</td>
+                            <td>Elimina contenedor</td>
+                            <td><code>podman rm -f mi-web</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman rmi</td>
+                            <td>Elimina imagen local</td>
+                            <td><code>podman rmi nginx:latest</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman ps</td>
+                            <td>Lista contenedores activos</td>
+                            <td><code>podman ps -a</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman images</td>
+                            <td>Lista imágenes locales</td>
+                            <td><code>podman images</code></td>
+                        </tr>
+                        <tr>
+                            <td>podman inspect</td>
+                            <td>Info detallada (JSON)</td>
+                            <td><code>podman inspect mi-web</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+             SLIDE 11 — Quiz
+        ════════════════════════════════════════════════════ -->
+            <div class="slide" id="s10">
+                <div class="slide-tag">Evaluación</div>
+                <h2>Quiz — Pon a prueba tu conocimiento</h2>
+
+                <div id="quiz-container">
+                    <div id="quiz-q" class="quiz-q"></div>
+                    <div id="quiz-opts"></div>
+                    <div id="quiz-feedback" class="quiz-feedback"></div>
+                    <div style="display:flex;gap:10px;margin-top:20px;align-items:center">
+                        <button class="copy-btn" onclick="nextQuestion()" id="next-q-btn"
+                            style="font-size:12px;padding:8px 16px">Siguiente pregunta →</button>
+                        <span id="quiz-score" style="font-family:var(--mono);font-size:12px;color:var(--muted)"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+             SLIDE 12 — Cierre
+        ════════════════════════════════════════════════════ -->
+            <div class="slide slide-cover" id="s11">
+                <div class="cover-icon">🚀</div>
+                <div class="badge">✓ Módulo completado</div>
+                <h1>¡Bien hecho!</h1>
+                <p class="subtitle" style="font-size:1.2em;max-width:600px">
+                    Ya conoces los comandos fundamentales de Podman para gestionar el ciclo de vida completo de tus
+                    contenedores.
+                </p>
+                <div class="cover-meta" style="margin-top:20px">
+                    <div class="cover-chip">pull <span>✓</span></div>
+                    <div class="cover-chip">build <span>✓</span></div>
+                    <div class="cover-chip">run <span>✓</span></div>
+                    <div class="cover-chip">start/stop <span>✓</span></div>
+                    <div class="cover-chip">exec <span>✓</span></div>
+                    <div class="cover-chip">push <span>✓</span></div>
+                    <div class="cover-chip">rm <span>✓</span></div>
+                </div>
+                <div style="margin-top:40px" class="info-box" style="max-width:550px">
+                    <strong>Próximo módulo</strong>
+                    Pods, redes, volúmenes y <code style="color:var(--accent)">podman-compose</code> para orquestación
+                    multi-contenedor.
+                </div>
+            </div>
+        </div><!-- /slides-area -->
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← ANTERIOR</button>
+            <div class="nav-dots" id="navDots"></div>
+            <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">SIGUIENTE →</button>
+        </div>
+
+    </div><!-- /container -->
+
+    <script>
+        // ── Slide engine ──────────────────────────────────────────
+        const slides = document.querySelectorAll('.slide');
+        const total = slides.length;
+        let cur = 0;
+
+        document.getElementById('tot').textContent = total;
+
+        // Build nav dots
+        const dotsEl = document.getElementById('navDots');
+        for (let i = 0; i < total; i++) {
+            const d = document.createElement('div');
+            d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            d.onclick = () => goTo(i);
+            dotsEl.appendChild(d);
+        }
+
+        function goTo(n) {
+            if (n < 0 || n >= total) return;
+            slides[cur].classList.remove('active');
+            slides[cur].classList.add('exit');
+            setTimeout(() => slides[n < cur ? cur : cur].classList.remove('exit'), 400);
+            cur = n;
+            slides[cur].classList.add('active');
+
+            document.getElementById('cur').textContent = cur + 1;
+            document.getElementById('prevBtn').disabled = cur === 0;
+            document.getElementById('nextBtn').disabled = cur === total - 1;
+            document.getElementById('progress').style.width = ((cur + 1) / total * 100) + '%';
+
+            dotsEl.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+
+            // Init quiz on arrival
+            if (cur === 10 && !quizStarted) initQuiz();
+        }
+
+        function changeSlide(dir) { goTo(cur + dir); }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+        });
+
+        goTo(0);
+
+        // ── Copy button ───────────────────────────────────────────
+        function copyCmd(btn, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const orig = btn.textContent;
+                btn.textContent = '✓ COPIADO';
+                btn.style.background = 'var(--green)';
+                btn.style.color = '#000';
+                setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.color = ''; }, 1500);
+            });
+        }
+
+        // ── Quiz ──────────────────────────────────────────────────
+        const questions = [
+            {
+                q: '¿Qué flag de <code style="color:var(--accent)">podman run</code> ejecuta el contenedor en segundo plano (background)?',
+                opts: ['-it', '-d', '--bg', '-s'],
+                correct: 1
+            },
+            {
+                q: '¿Cuál es el comando para ver los logs de un contenedor en tiempo real?',
+                opts: ['podman inspect mi-web', 'podman exec mi-web logs', 'podman logs -f mi-web', 'podman status mi-web'],
+                correct: 2
+            },
+            {
+                q: 'Para ejecutar una shell interactiva dentro de un contenedor en ejecución, usas:',
+                opts: ['podman run -it mi-web bash', 'podman exec -it mi-web bash', 'podman attach -it mi-web', 'podman shell mi-web'],
+                correct: 1
+            },
+            {
+                q: '¿Cuál es el archivo que Podman lee por defecto para construir una imagen?',
+                opts: ['Dockerfile', 'Containerfile', 'Buildfile', 'podman.yml'],
+                correct: 1
+            },
+            {
+                q: '¿Qué hace <code style="color:var(--accent)">podman stop</code> antes de enviar SIGKILL?',
+                opts: ['Envía SIGSTOP y espera 30s', 'Envía SIGTERM y espera 10s por defecto', 'Pausa el contenedor automáticamente', 'Crea un checkpoint del estado'],
+                correct: 1
+            },
+            {
+                q: '¿Qué comando sube una imagen al registry de Docker Hub?',
+                opts: ['podman publish imagen', 'podman upload imagen', 'podman push docker.io/user/imagen', 'podman deploy imagen'],
+                correct: 2
+            }
+        ];
+
+        let quizIdx = 0, score = 0, quizStarted = false;
+
+        function initQuiz() {
+            quizStarted = true;
+            quizIdx = 0; score = 0;
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[quizIdx];
+            document.getElementById('quiz-q').innerHTML = `<span style="color:var(--muted);font-family:var(--mono);font-size:0.8em">Pregunta ${quizIdx + 1} / ${questions.length}</span><br>${q.q}`;
+            const opts = document.getElementById('quiz-opts');
+            opts.innerHTML = '';
+            const labels = ['A', 'B', 'C', 'D'];
+            q.opts.forEach((opt, i) => {
+                const d = document.createElement('div');
+                d.className = 'quiz-option';
+                d.innerHTML = `<span class="opt-label">${labels[i]}</span> ${opt}`;
+                d.onclick = () => answer(i, d);
+                opts.appendChild(d);
+            });
+            document.getElementById('quiz-feedback').textContent = '';
+            document.getElementById('quiz-score').textContent = `Puntuación: ${score} / ${quizIdx}`;
+        }
+
+        function answer(i, el) {
+            const q = questions[quizIdx];
+            document.querySelectorAll('#quiz-opts .quiz-option').forEach(o => o.onclick = null);
+            const fb = document.getElementById('quiz-feedback');
+            if (i === q.correct) {
+                el.classList.add('correct');
+                fb.innerHTML = '<span style="color:var(--green)">✓ ¡Correcto!</span>';
+                score++;
+            } else {
+                el.classList.add('incorrect');
+                document.querySelectorAll('#quiz-opts .quiz-option')[q.correct].classList.add('correct');
+                fb.innerHTML = '<span style="color:var(--red)">✗ Incorrecto</span>';
+            }
+            document.getElementById('quiz-score').textContent = `Puntuación: ${score} / ${quizIdx + 1}`;
+        }
+
+        function nextQuestion() {
+            quizIdx++;
+            if (quizIdx >= questions.length) {
+                document.getElementById('quiz-q').innerHTML = `<strong style="font-size:1.2em">Quiz finalizado 🎉</strong><br><span style="color:var(--muted)">Puntuación final: ${score} / ${questions.length}</span>`;
+                document.getElementById('quiz-opts').innerHTML = '';
+                document.getElementById('quiz-feedback').innerHTML = score >= 5
+                    ? '<span style="color:var(--green)">¡Excelente dominio de Podman!</span>'
+                    : '<span style="color:var(--yellow)">Repasa los comandos y vuelve a intentarlo.</span>';
+                document.getElementById('next-q-btn').textContent = '🔄 Reiniciar';
+                document.getElementById('next-q-btn').onclick = initQuiz;
+                return;
+            }
+            renderQuestion();
+        }
+    </script>
+</body>
+
+</html>

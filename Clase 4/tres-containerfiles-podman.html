@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tres Containerfiles para Podman en Red Hat (Copy)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;900&family=Red+Hat+Text:wght@400;500;700&family=Red+Hat+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --paper: #eef1f4;
+            --panel: #ffffff;
+            --ink: #1d2733;
+            --muted: #5b6b7c;
+            --red: #c9190b;
+            --line: #cfd7df;
+            --code-bg: #1b2a3a;
+            --code-ink: #e3ebf3;
+            --code-dim: #8fa3b8;
+            --tag-bg: #fbe7e5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --paper: #141c25;
+                --panel: #1b2530;
+                --ink: #e3e9ef;
+                --muted: #9aabbb;
+                --red: #f0564a;
+                --line: #2c3a48;
+                --code-bg: #0f1720;
+                --code-ink: #dfe8f1;
+                --code-dim: #7f94a9;
+                --tag-bg: #3a1f1e;
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --paper: #141c25;
+            --panel: #1b2530;
+            --ink: #e3e9ef;
+            --muted: #9aabbb;
+            --red: #f0564a;
+            --line: #2c3a48;
+            --code-bg: #0f1720;
+            --code-ink: #dfe8f1;
+            --code-dim: #7f94a9;
+            --tag-bg: #3a1f1e;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%
+        }
+
+        body {
+            margin: 0;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: "Red Hat Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .wrap {
+            max-width: 52rem;
+            margin: 0 auto;
+            padding: 0 1.25rem
+        }
+
+        header.hero {
+            border-bottom: 6px solid var(--red);
+            background: var(--panel)
+        }
+
+        .hero .wrap {
+            padding-top: 3rem;
+            padding-bottom: 2.25rem
+        }
+
+        .hero h1 {
+            font-family: "Red Hat Display", system-ui, sans-serif;
+            font-weight: 900;
+            font-size: clamp(2rem, 6vw, 3.4rem);
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+            margin: 0 0 1rem;
+            max-width: 18ch;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            max-width: 62ch
+        }
+
+        .prompt {
+            margin-top: 1.75rem;
+            font-family: "Red Hat Mono", ui-monospace, Menlo, monospace;
+            font-size: .95rem;
+            background: var(--code-bg);
+            color: var(--code-ink);
+            padding: .9rem 1.1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .prompt span {
+            color: var(--red)
+        }
+
+        nav.toc {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            margin: 2rem 0 0
+        }
+
+        nav.toc a {
+            color: var(--ink);
+            text-decoration: none;
+            font-weight: 500;
+            border: 1.5px solid var(--line);
+            padding: .35rem .8rem;
+            border-radius: 999px;
+            background: var(--panel);
+        }
+
+        nav.toc a:hover {
+            border-color: var(--red)
+        }
+
+        a:focus-visible,
+        button:focus-visible {
+            outline: 3px solid var(--red);
+            outline-offset: 2px
+        }
+
+        main .wrap {
+            padding-top: 1rem;
+            padding-bottom: 4rem
+        }
+
+        section {
+            padding-top: 2.5rem
+        }
+
+        section>h2 {
+            font-family: "Red Hat Display", system-ui, sans-serif;
+            font-weight: 700;
+            font-size: 1.75rem;
+            line-height: 1.2;
+            margin: 0 0 .4rem;
+            padding-left: .8rem;
+            border-left: 5px solid var(--red);
+        }
+
+        section>p.lead {
+            color: var(--muted);
+            margin: .2rem 0 1.2rem;
+            max-width: 64ch
+        }
+
+        h3 {
+            font-family: "Red Hat Display", system-ui, sans-serif;
+            font-size: 1.1rem;
+            margin: 1.6rem 0 .5rem
+        }
+
+        .file {
+            margin: 1rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: var(--code-bg)
+        }
+
+        .file-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: .45rem .6rem .45rem 1rem;
+            background: var(--panel);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .file-name {
+            font-family: "Red Hat Mono", ui-monospace, monospace;
+            font-weight: 500;
+            font-size: .9rem
+        }
+
+        .file-name small {
+            color: var(--muted);
+            font-family: "Red Hat Text", sans-serif;
+            font-weight: 400;
+            margin-left: .5rem
+        }
+
+        button.copy {
+            font: inherit;
+            font-size: .85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1.5px solid var(--line);
+            background: transparent;
+            color: var(--ink);
+            padding: .25rem .75rem;
+            border-radius: 5px;
+        }
+
+        button.copy:hover {
+            border-color: var(--red);
+            color: var(--red)
+        }
+
+        pre {
+            margin: 0;
+            overflow-x: auto
+        }
+
+        pre code {
+            display: block;
+            padding: 1rem 1.1rem;
+            color: var(--code-ink);
+            font-family: "Red Hat Mono", ui-monospace, Menlo, Consolas, monospace;
+            font-size: .86rem;
+            line-height: 1.55;
+            white-space: pre;
+        }
+
+        .c {
+            color: var(--code-dim)
+        }
+
+        .k {
+            color: #ff8a7f
+        }
+
+        ul.notes {
+            padding-left: 1.2rem;
+            margin: .5rem 0 0
+        }
+
+        ul.notes li {
+            margin: .35rem 0
+        }
+
+        code.inline {
+            font-family: "Red Hat Mono", ui-monospace, monospace;
+            font-size: .9em;
+            background: var(--tag-bg);
+            padding: .05rem .35rem;
+            border-radius: 4px;
+        }
+
+        .tree {
+            font-family: "Red Hat Mono", ui-monospace, monospace;
+            font-size: .88rem;
+            color: var(--muted);
+            margin: .3rem 0 0
+        }
+
+        footer {
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: .9rem
+        }
+
+        footer .wrap {
+            padding-top: 1.25rem;
+            padding-bottom: 2rem
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="hero">
+        <div class="wrap">
+            <h1>Tres Containerfiles para Podman en Red Hat</h1>
+            <p>Un servidor web en Python puro, una base de datos PostgreSQL que crea sus propios usuarios y un Ubuntu
+                que se actualiza y da de alta usuarios desde un archivo en la misma carpeta. Cada ejemplo vive en su
+                propio directorio y se construye con <code class="inline">podman build</code>.</p>
+            <div class="prompt"><span>$</span> sudo dnf install -y podman &amp;&amp; podman --version</div>
+            <nav class="toc" aria-label="Ejemplos">
+                <a href="#web">Webserver Python</a>
+                <a href="#db">Base de datos</a>
+                <a href="#ubuntu">Ubuntu con usuarios</a>
+                <a href="#notas">Notas RHEL</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="wrap">
+
+            <!-- ===================== WEB ===================== -->
+            <section id="web">
+                <h2>Webserver con Python puro</h2>
+                <p class="lead">Solo librería estándar (<code class="inline">http.server</code>), sin Flask ni
+                    dependencias. Imagen base UBI 9 de Red Hat, que no requiere suscripción y corre como usuario no
+                    root.</p>
+                <div class="tree">web-python/<br>├── Containerfile<br>└── server.py</div>
+
+                <div class="file">
+                    <div class="file-head"><span class="file-name">server.py</span><button class="copy"
+                            type="button">Copiar</button></div>
+                    <pre><code>from http.server import HTTPServer, BaseHTTPRequestHandler
+import datetime
+import json
+import os
+import socket
+
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/health":
+            body = json.dumps({"status": "ok"}).encode()
+            ctype = "application/json"
+        else:
+            html = (
+                "&lt;h1&gt;Hola desde Podman&lt;/h1&gt;"
+                f"&lt;p&gt;Contenedor: {socket.gethostname()}&lt;/p&gt;"
+                f"&lt;p&gt;Hora: {datetime.datetime.now():%Y-%m-%d %H:%M:%S}&lt;/p&gt;"
+            )
+            body = html.encode()
+            ctype = "text/html; charset=utf-8"
+
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    print(f"Escuchando en 0.0.0.0:{port}")
+    HTTPServer(("0.0.0.0", port), Handler).serve_forever()</code></pre>
+                </div>
+
+                <div class="file">
+                    <div class="file-head"><span class="file-name">Containerfile</span><button class="copy"
+                            type="button">Copiar</button></div>
+                    <pre><code><span class="k">FROM</span> registry.access.redhat.com/ubi9/python-311
+
+<span class="k">LABEL</span> description="Webserver en Python puro con http.server"
+
+<span class="k">WORKDIR</span> /opt/app-root/src
+
+<span class="c"># Copiamos el código con el usuario no root de la imagen (1001)</span>
+<span class="k">COPY</span> --chown=1001:0 server.py .
+
+<span class="k">ENV</span> PORT=8080 \
+    PYTHONUNBUFFERED=1
+
+<span class="k">EXPOSE</span> 8080
+<span class="k">USER</span> 1001
+
+<span class="k">CMD</span> ["python", "server.py"]</code></pre>
+                </div>
+
+                <h3>Construir y probar</h3>
+                <div class="file">
+                    <div class="file-head"><span class="file-name">terminal</span><button class="copy"
+                            type="button">Copiar</button></div>
+                    <pre><code>cd web-python
+podman build -t py-web:1.0 .
+podman run -d --name web -p 8080:8080 py-web:1.0
+
+curl http://localhost:8080
+curl http://localhost:8080/health
+podman logs web</code></pre>
+                </div>
+            </section>
+
+            <!-- ===================== DB ===================== -->
+            <section id="db">
+                <h2>Base de datos PostgreSQL con usuarios</h2>
+                <p class="lead">El script SQL se copia a <code class="inline">/docker-entrypoint-initdb.d/</code> y se
+                    ejecuta la primera vez que arranca el contenedor: crea dos usuarios con permisos distintos, una
+                    base, una tabla y datos de prueba.</p>
+                <div class="tree">db-postgres/<br>├── Containerfile<br>└── init.sql</div>
+
+                <div class="file">
+                    <div class="file-head"><span class="file-name">init.sql</span><button class="copy"
+                            type="button">Copiar</button></div>
+                    <pre><code><span class="c">-- Usuarios</span>
+CREATE USER app_user WITH PASSWORD 'App2026!';
+CREATE USER reporte  WITH PASSWORD 'Rep2026!';
+
+<span class="c">-- Base de datos cuyo dueño es app_user</span>
+CREATE DATABASE inventario OWNER app_user;
+
+\connect inventario
+
+CREATE TABLE productos (
+    id        SERIAL PRIMARY KEY,
+    nombre    VARCHAR(100) NOT NULL,
+    cantidad  INTEGER      NOT NULL DEFAULT 0,
+    creado    TIMESTAMP    NOT NULL DEFAULT now()
+);
+ALTER TABLE productos OWNER TO app_user;
+
+INSERT INTO productos (nombre, cantidad) VALUES
+    ('Servidor ProLiant', 4),
+    ('Switch 48p', 2),
+    ('Disco NVMe 3.84TB', 12);
+
+<span class="c">-- reporte: solo lectura</span>
+GRANT CONNECT ON DATABASE inventario TO reporte;
+GRANT USAGE   ON SCHEMA public       TO reporte;
+GRANT SELECT  ON ALL TABLES IN SCHEMA public TO reporte;
+ALTER DEFAULT PRIVILEGES FOR ROLE app_user IN SCHEMA public
+    GRANT SELECT ON TABLES TO reporte;</code></pre>
+                </div>
+
+                <div class="file">
+                    <div class="file-head"><span class="file-name">Containerfile</span><button class="copy"
+                            type="button">Copiar</button></div>
+                    <pre><code><span class="k">FROM</span> docker.io/library/postgres:16
+
+<span class="k">LABEL</span> description="PostgreSQL con usuarios y datos iniciales"
+
+<span class="c"># Se ejecuta solo si el directorio de datos está vacío</span>
+<span class="k">COPY</span> init.sql /docker-entrypoint-initdb.d/01-init.sql
+
+<span class="k">ENV</span> TZ=America/Mexico_City
+
+<span class="k">EXPOSE</span> 5432</code></pre>
+                </div>
+
+                <h3>Construir y probar</h3>
+                <div class="file">
+                    <div class="file-head"><span class="file-name">terminal</span><button class="copy"
+                            type="button">Copiar</button></div>
+                    <pre><code>cd db-postgres
+podman build -t pg-usuarios:1.0 .
+podman volume create pgdata
+
+<span class="c"># La contraseña del superusuario se pasa en ejecución, no en la imagen</span>
+podman run -d --name db \
+  -e POSTGRES_PASSWORD='Admin2026!' \
+  -p 5432:5432 \
+  -v pgdata:/var/lib/postgresql/data \
+  pg-usuarios:1.0
+
+podman logs -f db          <span class="c"># espera "ready to accept connections"</span>
+
+<span class="c"># Ver usuarios creados</span>
+podman exec -it db psql -U postgres -c '\du'
+
+<span class="c"># Consultar como app_user y como reporte</span>
+podman exec -it db psql -U app_user -d inventario -c 'SELECT * FROM productos;'
+podman exec -it db psql -U reporte  -d inventario -c 'SELECT count(*) FROM productos;'
+
+<span class="c"># reporte no puede escribir (debe fallar)</span>
+podman exec -it db psql -U reporte -d inventario \
+  -c "INSERT INTO productos(nombre) VALUES ('prueba');"</code></pre>
+                </div>
+            </section>
+
+            <!-- ===================== UBUNTU ===================== -->
+            <section id="ubuntu">
+                <h2>Ubuntu que se actualiza y crea usuarios desde un archivo</h2>
+                <p class="lead">El archivo <code class="inline">usuarios.txt</code> está en la misma ruta que el
+                    Containerfile (el contexto de build). Durante la construcción se actualiza el sistema, se lee el
+                    archivo línea por línea y se crea cada usuario en el grupo <code class="inline">devops</code> con
+                    sudo.</p>
+                <div class="tree">ubuntu-usuarios/<br>├── Containerfile<br>└── usuarios.txt</div>
+
+                <div class="file">
+                    <div class="file-head"><span class="file-name">usuarios.txt <small>formato
+                                usuario:contraseña</small></span><button class="copy" type="button">Copiar</button>
+                    </div>
+                    <pre><code># Las líneas con # y las vacías se ignoran
+daniel:Daniel2026!
+ana:Ana2026!
+alumno1:Alumno2026!
+alumno2:Alumno2026!</code></pre>
+                </div>
+
+                <div class="file">
+                    <div class="file-head"><span class="file-name">Containerfile</span><button class="copy"
+                            type="button">Copiar</button></div>
+                    <pre><code><span class="k">FROM</span> docker.io/library/ubuntu:24.04
+
+<span class="k">LABEL</span> description="Ubuntu actualizado con usuarios desde usuarios.txt"
+
+<span class="k">ENV</span> DEBIAN_FRONTEND=noninteractive \
+    TZ=America/Mexico_City
+
+<span class="c"># 1. Actualizar el sistema operativo e instalar utilerías básicas</span>
+<span class="k">RUN</span> apt-get update &amp;&amp; \
+    apt-get -y upgrade &amp;&amp; \
+    apt-get install -y --no-install-recommends sudo tzdata vim-tiny iputils-ping &amp;&amp; \
+    apt-get clean &amp;&amp; rm -rf /var/lib/apt/lists/*
+
+<span class="c"># 2. Copiar el archivo que está en la misma ruta que este Containerfile</span>
+<span class="k">COPY</span> usuarios.txt /tmp/usuarios.txt
+
+<span class="c"># 3. Crear grupo y usuarios leyendo el archivo</span>
+<span class="k">RUN</span> groupadd -f devops &amp;&amp; \
+    while IFS=: read -r usuario clave || [ -n "$usuario" ]; do \
+      case "$usuario" in ''|'#'*) continue ;; esac; \
+      useradd -m -s /bin/bash -G devops "$usuario"; \
+      echo "$usuario:$clave" | chpasswd; \
+      echo "Usuario creado: $usuario"; \
+    done &lt; /tmp/usuarios.txt &amp;&amp; \
+    echo '%devops ALL=(ALL) NOPASSWD:ALL' &gt; /etc/sudoers.d/devops &amp;&amp; \
+    chmod 440 /etc/sudoers.d/devops &amp;&amp; \
+    rm -f /tmp/usuarios.txt
+
+<span class="k">WORKDIR</span> /home
+
+<span class="k">CMD</span> ["/bin/bash"]</code></pre>
+                </div>
+
+                <h3>Construir y probar</h3>
+                <div class="file">
+                    <div class="file-head"><span class="file-name">terminal</span><button class="copy"
+                            type="button">Copiar</button></div>
+                    <pre><code>cd ubuntu-usuarios
+podman build -t ubuntu-usuarios:1.0 .
+
+<span class="c"># Verificar usuarios y grupo sin entrar al contenedor</span>
+podman run --rm ubuntu-usuarios:1.0 getent group devops
+podman run --rm ubuntu-usuarios:1.0 ls /home
+
+<span class="c"># Sesión interactiva: cambiar a un usuario y probar sudo</span>
+podman run -it --rm --name ubu ubuntu-usuarios:1.0
+  su - daniel
+  sudo apt list --upgradable</code></pre>
+                </div>
+            </section>
+
+            <!-- ===================== NOTAS ===================== -->
+            <section id="notas">
+                <h2>Notas para Podman en RHEL</h2>
+                <ul class="notes">
+                    <li>Podman busca <code class="inline">Containerfile</code> o <code class="inline">Dockerfile</code>
+                        en el directorio; ambos nombres funcionan igual. Para otro nombre usa <code
+                            class="inline">-f archivo</code>.</li>
+                    <li>Usa nombres de imagen completos (<code class="inline">docker.io/library/…</code>, <code
+                            class="inline">registry.access.redhat.com/…</code>) para evitar el prompt de short-names de
+                        <code class="inline">/etc/containers/registries.conf</code>.</li>
+                    <li>En modo rootless no puedes publicar puertos menores a 1024; por eso los ejemplos usan 8080 y
+                        5432.</li>
+                    <li>Si montas carpetas del host (bind mounts) con SELinux en enforcing, agrega <code
+                            class="inline">:Z</code> al volumen, por ejemplo <code
+                            class="inline">-v ./datos:/data:Z</code>.</li>
+                    <li>Para acceder desde otra máquina abre el puerto: <code
+                            class="inline">sudo firewall-cmd --add-port=8080/tcp --permanent &amp;&amp; sudo firewall-cmd --reload</code>.
+                    </li>
+                    <li>Las contraseñas en <code class="inline">usuarios.txt</code> e <code
+                            class="inline">init.sql</code> quedan dentro de la imagen: sirven para laboratorio, no para
+                        producción. En producción usa <code class="inline">podman secret</code> o variables en
+                        ejecución.</li>
+                    <li>Limpieza: <code
+                            class="inline">podman rm -f web db &amp;&amp; podman volume rm pgdata &amp;&amp; podman image prune</code>.
+                    </li>
+                </ul>
+            </section>
+
+        </div>
+    </main>
+
+    <footer>
+        <div class="wrap">Probado con la sintaxis de Podman 4.x/5.x en RHEL 9 y derivados (Rocky, Alma).</div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('button.copy').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var code = btn.closest('.file').querySelector('code');
+                var text = code ? code.textContent : '';
+                var done = function () {
+                    btn.textContent = 'Copiado';
+                    setTimeout(function () { btn.textContent = 'Copiar'; }, 1500);
+                };
+                try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+                    } else { fallback(text); done(); }
+                } catch (e) { fallback(text); done(); }
+            });
+        });
+        function fallback(text) {
+            try {
+                var ta = document.createElement('textarea');
+                ta.value = text; ta.setAttribute('readonly', '');
+                ta.style.position = 'absolute'; ta.style.left = '-9999px';
+                document.body.appendChild(ta); ta.select();
+                document.execCommand('copy'); document.body.removeChild(ta);
+            } catch (e) { }
+        }
+    </script>
+</body>
+
+</html>

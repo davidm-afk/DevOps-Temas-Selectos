@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Entrega - Tarea Clase 4 Podman</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #202124;
+            line-height: 1.5;
+            padding: 30px 10px;
+        }
+
+        /* Botón de impresión superior */
+        .toolbar {
+            max-width: 816px;
+            margin: 0 auto 16px auto;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-print {
+            background-color: #1a73e8;
+            color: #ffffff;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 4px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3);
+            transition: background-color 0.2s;
+        }
+
+        .btn-print:hover {
+            background-color: #1557b0;
+        }
+
+        /* Hoja estilo Google Docs */
+        .doc-page {
+            max-width: 816px;
+            /* Ancho estándar de hoja Google Docs */
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 72px 72px;
+            /* Margen estándar de 1 pulgada */
+            box-shadow: 0 1px 3px 1px rgba(60, 64, 67, 0.15), 0 1px 2px 0 rgba(60, 64, 67, 0.3);
+            border-radius: 2px;
+        }
+
+        /* Tipografía estilo Google Docs */
+        h1.doc-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1f1f1f;
+            line-height: 1.25;
+            margin-bottom: 16px;
+        }
+
+        .doc-meta {
+            font-size: 13px;
+            color: #5f6368;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #dadce0;
+        }
+
+        .doc-meta strong {
+            color: #202124;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f1f1f;
+            margin-top: 28px;
+            margin-bottom: 12px;
+        }
+
+        h3 {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #3c4043;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            font-size: 13.5px;
+            color: #202124;
+            margin-bottom: 10px;
+        }
+
+        ol,
+        ul {
+            font-size: 13.5px;
+            color: #202124;
+            padding-left: 28px;
+            margin-bottom: 14px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        /* Código de archivos (Containerfile, SQL) — mismo estilo que terminal */
+        .code-box {
+            background-color: #000000 !important;
+            border-radius: 4px;
+            padding: 14px 16px;
+            font-family: 'JetBrains Mono', Consolas, monospace;
+            font-size: 11.5px;
+            line-height: 1.55;
+            color: #f8fafc;
+            overflow-x: auto;
+            margin: 12px 0 16px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            page-break-inside: avoid;
+        }
+
+        /* Captura de terminal 100% NEGRA uniforme (simulando captura de pantalla de terminal) */
+        .terminal-screenshot {
+            background-color: #000000 !important;
+            border-radius: 4px;
+            padding: 14px 16px;
+            margin: 12px 0 8px 0;
+            font-family: 'JetBrains Mono', Consolas, monospace;
+            font-size: 11.5px;
+            line-height: 1.55;
+            color: #f8fafc;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            page-break-inside: avoid;
+        }
+
+        .terminal-screenshot .prompt {
+            color: #22c55e !important;
+            font-weight: 600;
+        }
+
+        .terminal-screenshot .cmd {
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+
+        .terminal-screenshot .out-highlight {
+            color: #38bdf8 !important;
+        }
+
+        .terminal-screenshot .out-err {
+            color: #f87171 !important;
+            font-weight: 700;
+        }
+
+        /* Nota explicativa de validación en texto plano normal */
+        .validation-text {
+            font-size: 13px;
+            color: #444746;
+            margin-bottom: 22px;
+            line-height: 1.45;
+        }
+
+        .validation-text strong {
+            color: #1f1f1f;
+        }
+
+        code.inline {
+            font-family: 'JetBrains Mono', monospace;
+            background: #f1f3f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        /* Impresión exacta para exportar a PDF */
+        @media print {
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+
+            .toolbar {
+                display: none !important;
+            }
+
+            .doc-page {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+
+            .terminal-screenshot {
+                background-color: #000000 !important;
+                color: #ffffff !important;
+                page-break-inside: avoid !important;
+            }
+
+            .terminal-screenshot .prompt {
+                color: #22c55e !important;
+            }
+
+            .terminal-screenshot .cmd {
+                color: #ffffff !important;
+            }
+
+            .terminal-screenshot .out-highlight {
+                color: #38bdf8 !important;
+            }
+
+            .terminal-screenshot .out-err {
+                color: #f87171 !important;
+            }
+
+            .code-box {
+                background-color: #000000 !important;
+                color: #f8fafc !important;
+                page-break-inside: avoid !important;
+            }
+
+            h2,
+            h3 {
+                page-break-after: avoid;
+            }
+
+            @page {
+                margin: 2cm 1.8cm;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="toolbar">
+        <button class="btn-print" onclick="window.print()">
+            Imprimir / Guardar como PDF
+        </button>
+    </div>
+
+    <div class="doc-page">
+        <h2 class="doc-title">Reporte de Entrega: Tarea Clase 4 - Podman y Containerfiles</h2>
+
+        <div class="doc-meta">
+            <p><strong>Asignatura:</strong> Temas Selectos de Ingeniería en Computación II - DevOps</p>
+            <p><strong>Tema:</strong> Despliegue de los dos contenedores restantes del artefacto de Claude
+                (<code>db-postgres</code> y <code>ubuntu-usuarios</code>)</p>
+            <p><strong>Entorno de ejecución:</strong> Rocky Linux 10.2 (Red Quartz) - Kernel Linux x86_64</p>
+            <p><strong>Motor de contenedores:</strong> Podman versión 5.8.2</p>
+            <p><strong>Alumno:</strong> David Moroni Sánchez Galván</p>
+            <p><strong>Fecha de entrega:</strong> 25 de Septiembre de 2026</p>
+        </div>
+
+        <h2>1. Objetivo de la Tarea</h2>
+        <p>Seguir el artefacto de Claude (<code class="inline">tres-containerfiles-podman.html</code>) para implementar,
+            compilar y validar los dos contenedores restantes:</p>
+        <ol>
+            <li><strong>Contenedor 2 (<code class="inline">db-postgres</code>):</strong> Base de datos PostgreSQL 16 con
+                inicialización automatizada mediante <code class="inline">init.sql</code>, segregación de permisos entre
+                usuario administrador (<code class="inline">app_user</code>) y usuario auditor de solo lectura (<code
+                    class="inline">reporte</code>), y almacenamiento persistente en el host con un volumen gestionado
+                (<code class="inline">pgdata</code>).</li>
+            <li><strong>Contenedor 3 (<code class="inline">ubuntu-usuarios</code>):</strong> Imagen de Ubuntu 24.04 que
+                se actualiza automáticamente durante la construcción, realiza alta masiva de cuentas leyendo un archivo
+                de texto (<code class="inline">usuarios.txt</code>), asigna contraseñas cifradas y configura privilegios
+                de administración en <code class="inline">sudoers.d</code>.</li>
+        </ol>
+
+        <h2>2. Ejercicio 1: Base de Datos PostgreSQL con Usuarios (db-postgres)</h2>
+
+        <h3>2.1 Archivo SQL de Inicialización (/root/db-postgres/init.sql)</h3>
+        <div class="code-box">CREATE USER app_user WITH PASSWORD 'App2026!';
+CREATE USER reporte  WITH PASSWORD 'Rep2026!';
+
+CREATE DATABASE inventario OWNER app_user;
+
+\connect inventario
+
+CREATE TABLE productos (
+    id        SERIAL PRIMARY KEY,
+    nombre    VARCHAR(100) NOT NULL,
+    cantidad  INTEGER      NOT NULL DEFAULT 0,
+    creado    TIMESTAMP    NOT NULL DEFAULT now()
+);
+ALTER TABLE productos OWNER TO app_user;
+
+INSERT INTO productos (nombre, cantidad) VALUES
+    ('Servidor ProLiant', 4),
+    ('Switch 48p', 2),
+    ('Disco NVMe 3.84TB', 12);
+
+GRANT CONNECT ON DATABASE inventario TO reporte;
+GRANT USAGE   ON SCHEMA public       TO reporte;
+GRANT SELECT  ON ALL TABLES IN SCHEMA public TO reporte;
+ALTER DEFAULT PRIVILEGES FOR ROLE app_user IN SCHEMA public
+    GRANT SELECT ON TABLES TO reporte;</div>
+        <p class="validation-text">Este script SQL es el corazón de la inicialización del contenedor de base de datos. Se ubica en el directorio especial <code class="inline">/docker-entrypoint-initdb.d/</code> y PostgreSQL lo ejecuta automáticamente únicamente la primera vez que el contenedor arranca con un volumen de datos vacío. El script crea dos roles con contraseñas seguras: <code class="inline">app_user</code>, que es el propietario de la base de datos y tiene control total sobre la tabla <code class="inline">productos</code> (puede insertar, actualizar, eliminar y consultar), y <code class="inline">reporte</code>, un rol de solo lectura destinado a auditoría. La política de permisos se implementa con tres sentencias <code class="inline">GRANT</code>: se permite la conexión a la base de datos, el uso del esquema público y la lectura de todas las tablas existentes. Además, el comando <code class="inline">ALTER DEFAULT PRIVILEGES</code> asegura que cualquier tabla futura que <code class="inline">app_user</code> cree también heredará automáticamente los permisos de lectura para <code class="inline">reporte</code>, garantizando la consistencia de la política de seguridad sin requerir intervención manual adicional. La tabla <code class="inline">productos</code> se precarga con tres registros de inventario de hardware como datos de prueba, lo que permite validar inmediatamente el correcto funcionamiento del esquema y los permisos una vez que el contenedor esté en ejecución.</p>
+
+        <h3>2.2 Archivo Containerfile (/root/db-postgres/Containerfile)</h3>
+        <div class="code-box">FROM docker.io/library/postgres:16
+
+LABEL description="PostgreSQL con usuarios y datos iniciales"
+
+COPY init.sql /docker-entrypoint-initdb.d/01-init.sql
+
+ENV TZ=America/Mexico_City
+
+EXPOSE 5432</div>
+        <p class="validation-text">El Containerfile define la imagen de la base de datos en tan solo cinco instrucciones, lo que ilustra uno de los principios clave de los contenedores: hacer una sola cosa y hacerla bien. La instrucción <code class="inline">FROM docker.io/library/postgres:16</code> descarga la imagen oficial de PostgreSQL desde Docker Hub, que incluye el motor de base de datos, el cliente <code class="inline">psql</code> y los scripts de entrada ya configurados. El corazón de la personalización está en la instrucción <code class="inline">COPY</code>: al colocar <code class="inline">init.sql</code> en el directorio <code class="inline">/docker-entrypoint-initdb.d/</code>, se aprovecha el mecanismo nativo de PostgreSQL para inicialización de bases de datos. El prefijo <code class="inline">01-</code> en el nombre del archivo garantiza el orden de ejecución en caso de que hubiera múltiples scripts. Este mecanismo es idempotente por diseño: si el directorio de datos del volumen ya contiene una base de datos inicializada, el script es ignorado, evitando duplicación de datos o errores al reiniciar el contenedor. La variable <code class="inline">TZ</code> configura la zona horaria del sistema para que los campos <code class="inline">TIMESTAMP</code> queden registrados en hora de México, y <code class="inline">EXPOSE 5432</code> documenta el puerto que el contenedor utiliza para recibir conexiones.</p>
+
+        <h3>2.3 Comandos de Construcción y Despliegue</h3>
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]# </span><span class="cmd">cd /root/db-postgres</span>
+<span class="prompt">[root@localhost db-postgres]# </span><span class="cmd">podman build -t pg-usuarios:1.0 .</span>
+<span class="prompt">[root@localhost db-postgres]# </span><span class="cmd">podman volume create pgdata</span>
+<span class="prompt">[root@localhost db-postgres]# </span><span class="cmd">podman run -d --replace --name db \
+  -e POSTGRES_PASSWORD='Admin2026!' \
+  -p 5432:5432 \
+  -v pgdata:/var/lib/postgresql/data:Z \
+  pg-usuarios:1.0</span></div>
+        <p class="validation-text">La secuencia de comandos ilustra el flujo estándar de despliegue de un contenedor con estado persistente en Podman. Primero, <code class="inline">podman build -t pg-usuarios:1.0 .</code> construye la imagen localmente leyendo el Containerfile del directorio actual; el punto (<code class="inline">.</code>) indica que el contexto de construcción es el directorio de trabajo, lo que permite que <code class="inline">COPY</code> encuentre el archivo <code class="inline">init.sql</code>. Después, <code class="inline">podman volume create pgdata</code> crea un volumen gestionado por Podman, que es una abstracción sobre un directorio en el host ubicado en <code class="inline">/var/lib/containers/storage/volumes/</code>; a diferencia de un bind mount, Podman administra su ciclo de vida independientemente del contenedor. Finalmente, <code class="inline">podman run</code> levanta el contenedor con las siguientes opciones clave: <code class="inline">-d</code> lo envía al segundo plano, <code class="inline">--replace</code> elimina automáticamente un contenedor anterior con el mismo nombre (muy útil en redeployments), <code class="inline">-e POSTGRES_PASSWORD</code> establece la contraseña del superusuario a través de una variable de entorno, <code class="inline">-p 5432:5432</code> mapea el puerto del host al del contenedor, y <code class="inline">-v pgdata:/var/lib/postgresql/data:Z</code> monta el volumen con el modificador <code class="inline">:Z</code>, necesario en Rocky Linux porque SELinux en modo Enforcing bloquea el acceso a directorios del host desde contenedores a menos que se re-etiquete el contexto de seguridad del directorio con la etiqueta <code class="inline">container_file_t</code>, tarea que la bandera <code class="inline">:Z</code> realiza automáticamente.</p>
+
+        <h3>2.4 Capturas de Validación del Contenedor PostgreSQL</h3>
+
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]# </span><span class="cmd">podman volume inspect pgdata --format "Nombre: {{.Name}} | Punto de Montaje: {{.Mountpoint}}"</span>
+Nombre: pgdata | Punto de Montaje: <span class="out-highlight">/var/lib/containers/storage/volumes/pgdata/_data</span></div>
+        <p class="validation-text">El comando <code class="inline">podman volume inspect</code> consulta los metadatos internos del volumen <code class="inline">pgdata</code> y con el flag <code class="inline">--format</code> se extrae únicamente el nombre y el punto de montaje en el host usando la sintaxis de plantillas de Go. La salida confirma que el directorio <code class="inline">/var/lib/containers/storage/volumes/pgdata/_data</code> existe físicamente en el filesystem del servidor Rocky Linux. Esta es la ruta donde PostgreSQL almacena todos sus archivos internos: el directorio <code class="inline">base/</code> con los archivos de cada base de datos, los WAL logs de transacciones en <code class="inline">pg_wal/</code> y los archivos de configuración. Gracias a este volumen gestionado, si el contenedor <code class="inline">db</code> es detenido, eliminado o actualizado a una nueva versión de la imagen, los datos persisten en el host y son reutilizados automáticamente al crear un nuevo contenedor montando el mismo volumen. Este patrón es fundamental en ambientes de producción donde la durabilidad de los datos es un requerimiento no negociable.</p>
+
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]# </span><span class="cmd">podman exec -i db psql -U postgres -c '\du'</span>
+                             List of roles
+ Role name |                         Attributes
+-----------+------------------------------------------------------------
+ <span class="out-highlight">app_user</span>  |
+ <span class="out-highlight">postgres</span>  | Superuser, Create role, Create DB, Replication, Bypass RLS
+ <span class="out-highlight">reporte</span>   |</div>
+        <p class="validation-text">El comando <code class="inline">podman exec -i db</code> abre un canal de ejecución dentro del contenedor en ejecución llamado <code class="inline">db</code>, y lanza el cliente de línea de comandos <code class="inline">psql</code> con el flag <code class="inline">-c</code> para pasar una instrucción directamente. El meta-comando <code class="inline">\du</code> (abreviatura de <em>describe users</em>) lista todos los roles del clúster de PostgreSQL junto con sus atributos. La salida muestra tres roles: <code class="inline">postgres</code>, que es el superusuario incluido por defecto en la imagen base con todos los privilegios del sistema (Create role, Create DB, Replication, Bypass RLS), y los dos roles creados por nuestro script de inicialización: <code class="inline">app_user</code> y <code class="inline">reporte</code>. La columna de atributos vacía para estos últimos dos indica que son roles sin privilegios administrativos globales, lo cual es el comportamiento esperado y deseado: son usuarios de aplicación con permisos estrictamente limitados al esquema y las tablas que se les han otorgado explícitamente. Este resultado confirma que el script <code class="inline">init.sql</code> fue procesado correctamente en el primer arranque del contenedor.</p>
+
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]# </span><span class="cmd">podman exec -i db psql -U app_user -d inventario -c 'SELECT * FROM productos;'</span>
+ id |      nombre       | cantidad |           creado
+----+-------------------+----------+----------------------------
+  1 | Servidor ProLiant |        4 | 2026-09-24 23:31:16.363331
+  2 | Switch 48p        |        2 | 2026-09-24 23:31:16.363331
+  3 | Disco NVMe 3.84TB |       12 | 2026-09-24 23:31:16.363331
+(3 rows)</div>
+        <p class="validation-text">Se ejecuta una consulta <code class="inline">SELECT *</code> sobre la tabla <code class="inline">productos</code> autenticando con el usuario <code class="inline">app_user</code> y apuntando a la base de datos <code class="inline">inventario</code>. La salida muestra los tres registros de inventario de hardware que el script SQL insertó automáticamente durante la inicialización: un Servidor ProLiant con stock de 4 unidades, un Switch de 48 puertos con 2 unidades y Discos NVMe de 3.84 TB con 12 unidades. El campo <code class="inline">creado</code> refleja el timestamp exacto del momento en que el contenedor arrancó por primera vez y ejecutó el <code class="inline">INSERT</code>, lo que demuestra que la zona horaria configurada en el contenedor está funcionando. Esta prueba confirma dos cosas de forma simultánea: primero, que <code class="inline">app_user</code> tiene acceso completo de lectura a la tabla de la que es propietario; segundo, que los datos de inicialización están persistidos en el volumen <code class="inline">pgdata</code> y son accesibles incluso después de reiniciar el contenedor.</p>
+
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]# </span><span class="cmd">podman exec -i db psql -U reporte -d inventario -c 'SELECT count(*) AS total_productos FROM productos;'</span>
+ total_productos
+-----------------
+               <span class="out-highlight">3</span>
+(1 row)</div>
+        <p class="validation-text">Esta prueba valida el funcionamiento correcto de la política de permisos de solo lectura para el rol <code class="inline">reporte</code>. En lugar de hacer un <code class="inline">SELECT *</code> que devuelva todas las columnas, se usa <code class="inline">SELECT count(*)</code> para obtener un único valor agregado: el número total de filas en la tabla. Esto simula el caso de uso real de un usuario auditor, que normalmente necesita generar reportes y estadísticas sin necesidad de ver todos los campos de los registros individuales. El resultado de <code class="inline">3</code> confirma que los tres registros están presentes y que <code class="inline">reporte</code> puede consultar la tabla correctamente. Las sentencias <code class="inline">GRANT CONNECT</code>, <code class="inline">GRANT USAGE</code> y <code class="inline">GRANT SELECT</code> del script de inicialización forman una cadena de permisos en cascada: sin el <code class="inline">CONNECT</code> no se podría ni establecer la conexión, sin el <code class="inline">USAGE</code> no se podría acceder al esquema, y sin el <code class="inline">SELECT</code> no se podría leer ningún dato. Los tres niveles deben estar activos para que el rol funcione como auditor de solo lectura.</p>
+
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]# </span><span class="cmd">podman exec -i db psql -U reporte -d inventario -c "INSERT INTO productos(nombre) VALUES ('IntentoNoAutorizado');"</span>
+<span class="out-err">ERROR:  permission denied for table productos</span></div>
+        <p class="validation-text">Esta es la prueba más importante desde el punto de vista de la seguridad: se intenta deliberadamente una operación no autorizada con el usuario <code class="inline">reporte</code>, enviando un <code class="inline">INSERT</code> que intentaría agregar un registro falso llamado <code class="inline">IntentoNoAutorizado</code>. PostgreSQL evalúa los permisos del rol antes de ejecutar cualquier operación de escritura y, al no encontrar el privilegio <code class="inline">INSERT</code> en la tabla <code class="inline">productos</code> para ese rol, lanza inmediatamente el error <code class="inline">ERROR: permission denied for table productos</code> y aborta la transacción sin modificar ningún dato. Este comportamiento es el resultado esperado y deseado del principio de <em>least privilege</em> (mínimo privilegio): cada rol tiene únicamente los permisos estrictamente necesarios para cumplir su función, y cualquier intento de ir más allá es bloqueado a nivel del motor de base de datos, independientemente de la aplicación que realice la solicitud. Esta prueba demuestra que la política de segregación de roles es robusta y no puede ser eludida por el usuario.</p>
+
+        <h2>3. Ejercicio 2: Ubuntu con Creación Masiva de Usuarios (ubuntu-usuarios)</h2>
+
+        <h3>3.1 Archivo de Cuentas (/root/ubuntu-usuarios/usuarios.txt)</h3>
+        <div class="code-box">daniel:Daniel2026!
+ana:Ana2026!
+alumno1:Alumno2026!
+alumno2:Alumno2026!</div>
+        <p class="validation-text">El archivo <code class="inline">usuarios.txt</code> implementa un patrón de configuración muy común en DevOps: externalizar los datos variables fuera del código. En lugar de codificar los nombres de usuario directamente en el Containerfile (lo que haría la imagen rígida y difícil de mantener), se usa un archivo de texto plano con el formato <code class="inline">usuario:contraseña</code> que el script de construcción puede leer dinámicamente. Para agregar o eliminar usuarios basta con modificar este archivo y reconstruir la imagen con <code class="inline">podman build</code>, sin tocar el Containerfile. El formato elegido es deliberadamente simple para que el bucle <code class="inline">while read</code> pueda parsear cada línea usando el caracter <code class="inline">:</code> como separador de campo (<code class="inline">IFS=:</code>). Las contraseñas en este archivo no se almacenan en texto plano dentro de la imagen final: el script las pasa a <code class="inline">chpasswd</code>, que las cifra y las guarda en <code class="inline">/etc/shadow</code> usando el algoritmo SHA-512, y luego el archivo original es eliminado con <code class="inline">rm -f /tmp/usuarios.txt</code> para no dejar credenciales en texto plano dentro de la imagen.</p>
+
+        <h3>3.2 Archivo Containerfile (/root/ubuntu-usuarios/Containerfile)</h3>
+        <div class="code-box">FROM docker.io/library/ubuntu:24.04
+
+LABEL description="Ubuntu actualizado con usuarios desde usuarios.txt"
+
+ENV DEBIAN_FRONTEND=noninteractive TZ=America/Mexico_City
+
+RUN apt-get update && \
+    apt-get -y upgrade && \
+    apt-get install -y --no-install-recommends sudo tzdata vim-tiny iputils-ping && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY usuarios.txt /tmp/usuarios.txt
+
+RUN groupadd -f devops && \
+    while IFS=: read -r usuario clave || [ -n "$usuario" ]; do \
+      case "$usuario" in ''|'#'*) continue ;; esac; \
+      useradd -m -s /bin/bash -G devops "$usuario"; \
+      echo "$usuario:$clave" | chpasswd; \
+    done < /tmp/usuarios.txt && \
+    echo '%devops ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/devops && \
+    chmod 440 /etc/sudoers.d/devops && \
+    rm -f /tmp/usuarios.txt
+
+WORKDIR /home
+CMD ["/bin/bash"]</div>
+        <p class="validation-text">El Containerfile de Ubuntu está estructurado siguiendo las mejores prácticas de construcción de imágenes: se agrupa todo lo relacionado con la instalación de paquetes en un solo <code class="inline">RUN</code> encadenado con <code class="inline">&amp;&amp; \</code>, lo que reduce el número de capas de la imagen y minimiza su tamaño final. La variable <code class="inline">DEBIAN_FRONTEND=noninteractive</code> evita que los scripts de instalación de <code class="inline">apt-get</code> intenten mostrar diálogos interactivos (como la selección de zona horaria de <code class="inline">tzdata</code>), que bloquearían indefinidamente el proceso de construcción. El comando <code class="inline">apt-get clean &amp;&amp; rm -rf /var/lib/apt/lists/*</code> al final del <code class="inline">RUN</code> elimina la caché de paquetes descargada, reduciendo el tamaño de la imagen resultante. La parte más sofisticada es el bloque del segundo <code class="inline">RUN</code>: primero crea el grupo <code class="inline">devops</code> con <code class="inline">groupadd -f</code> (el flag <code class="inline">-f</code> evita error si el grupo ya existe), luego ejecuta un bucle <code class="inline">while IFS=: read -r usuario clave</code> que lee <code class="inline">usuarios.txt</code> línea por línea separando en dos variables por el caracter <code class="inline">:</code>. El <code class="inline">case</code> filtra líneas vacías o comentadas. Para cada usuario válido, <code class="inline">useradd -m -s /bin/bash -G devops</code> crea la cuenta con su directorio personal en <code class="inline">/home</code>, shell Bash y membresía al grupo <code class="inline">devops</code>. La instrucción <code class="inline">chpasswd</code> recibe el par usuario:clave por stdin y lo cifra en <code class="inline">/etc/shadow</code>. Finalmente, la regla en <code class="inline">sudoers.d/devops</code> con permisos <code class="inline">440</code> otorga a todo el grupo <code class="inline">devops</code> la capacidad de ejecutar cualquier comando como root sin contraseña, simulando un equipo de administración con acceso privilegiado.</p>
+
+        <h3>3.3 Capturas de Validación del Contenedor Ubuntu</h3>
+
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]# </span><span class="cmd">podman run --rm localhost/ubuntu-usuarios:1.0 getent group devops</span>
+<span class="out-highlight">devops:x:1001:daniel,ana,alumno1,alumno2</span></div>
+        <p class="validation-text">El comando <code class="inline">getent group devops</code> consulta la base de datos NSS (Name Service Switch) del sistema operativo del contenedor para obtener la entrada del grupo <code class="inline">devops</code>. La salida sigue el formato estándar del archivo <code class="inline">/etc/group</code>: nombre del grupo, contraseña (x indica que está gestionada por <code class="inline">gshadow</code>), GID y lista de miembros separados por comas. El GID 1001 confirma que el grupo fue creado dinámicamente por el script durante el build (GID 1000 estaba reservado por el grupo <code class="inline">ubuntu</code> de la imagen base). Los cuatro miembros listados (<code class="inline">daniel,ana,alumno1,alumno2</code>) corresponden exactamente a las cuatro entradas del archivo <code class="inline">usuarios.txt</code>, demostrando que el bucle <code class="inline">while</code> processó correctamente cada línea y que el flag <code class="inline">-G devops</code> del comando <code class="inline">useradd</code> agregó a cada usuario al grupo en el momento de su creación. El flag <code class="inline">--rm</code> del comando <code class="inline">podman run</code> indica que el contenedor se destruye automáticamente al terminar su proceso principal, ideal para pruebas y validaciones puntuales sin dejar contenedores huerfanos en el servidor.</p>
+
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]# </span><span class="cmd">podman run --rm localhost/ubuntu-usuarios:1.0 ls -la /home</span>
+total 0
+drwxr-xr-x. 1 root    root    61 Sep 24 23:31 .
+dr-xr-xr-x. 1 root    root    28 Sep 24 23:33 ..
+drwxr-x---. 2 alumno1 alumno1 57 Sep 24 23:31 <span class="out-highlight">alumno1</span>
+drwxr-x---. 2 alumno2 alumno2 57 Sep 24 23:31 <span class="out-highlight">alumno2</span>
+drwxr-x---. 2 ana     ana     57 Sep 24 23:31 <span class="out-highlight">ana</span>
+drwxr-x---. 2 daniel  daniel  57 Sep 24 23:31 <span class="out-highlight">daniel</span>
+drwxr-x---. 2 ubuntu  ubuntu  57 Sep 10 20:10 ubuntu</div>
+        <p class="validation-text">El comando <code class="inline">ls -la /home</code> lista el contenido del directorio raíz de directorios personales con formato largo (<code class="inline">-l</code>) incluyendo archivos ocultos (<code class="inline">-a</code>). La salida permite verificar tres aspectos cruciales del proceso de alta masiva de usuarios: primero, que se creó un directorio para cada uno de los cuatro usuarios del archivo (<code class="inline">alumno1</code>, <code class="inline">alumno2</code>, <code class="inline">ana</code>, <code class="inline">daniel</code>) además del usuario <code class="inline">ubuntu</code> que viene por defecto en la imagen base; segundo, que los permisos <code class="inline">drwxr-x---</code> son los correctos por convención de seguridad en Linux, significando que el propietario tiene acceso completo (rwx), el grupo primario puede listar y acceder al contenido (r-x), pero ningún otro usuario puede ver el contenido del directorio personal (---); y tercero, que tanto el propietario del directorio como el grupo primario coinciden con el nombre del usuario respectivo, que es el comportamiento estándar cuando se usa <code class="inline">useradd</code> con la opción <code class="inline">-m</code> (create home) y sin especificar explícitamente un GID primario, lo que hace que el sistema cree automáticamente un grupo con el mismo nombre. Los timestamps muestran que todos fueron creados en el mismo segundo, confirmando que el proceso fue completamente automatizado.</p>
+
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]# </span><span class="cmd">podman run --rm localhost/ubuntu-usuarios:1.0 su - daniel -c 'id; sudo apt list --upgradable | head -n 3'</span>
+uid=1001(daniel) gid=1002(daniel) groups=1002(daniel),<span class="out-highlight">1001(devops)</span>
+
+Listing...</div>
+        <p class="validation-text">Esta es la prueba de integración más completa del contenedor Ubuntu, ya que valida dos capas de seguridad y configuración simultáneamente. El comando <code class="inline">su - daniel</code> cambia al usuario <code class="inline">daniel</code> iniciando una sesión de login completa (el guión <code class="inline">-</code> carga el perfil del usuario y establece el directorio de trabajo en su <code class="inline">$HOME</code>), y la opción <code class="inline">-c</code> ejecuta los dos comandos encadenados. El primero, <code class="inline">id</code>, muestra la identidad del usuario en ejecución: el UID 1001 confirma que es el usuario <code class="inline">daniel</code>, su GID primario es 1002 (el grupo privado <code class="inline">daniel</code>) y entre sus grupos secundarios aparece el GID 1001 correspondiente al grupo <code class="inline">devops</code>. Esta membresía es exactamente la que se configuró con el flag <code class="inline">-G devops</code> en el <code class="inline">useradd</code>. El segundo comando, <code class="inline">sudo apt list --upgradable</code>, es la prueba definitiva de los privilegios de administración: al ejecutarse sin que el sistema solicite contraseña, se confirma que la regla <code class="inline">%devops ALL=(ALL) NOPASSWD:ALL</code> en <code class="inline">/etc/sudoers.d/devops</code> está activa y permite a cualquier miembro del grupo <code class="inline">devops</code> escalar privilegios a root sin autenticación adicional. La línea <code class="inline">Listing...</code> indica que <code class="inline">apt</code> inició la operación correctamente.</p>
+
+        <h2>4. Estado Final del Servidor de Contenedores (podman ps -a)</h2>
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ~]# </span><span class="cmd">podman ps -a</span>
+CONTAINER ID  IMAGE                           COMMAND               CREATED         STATUS                    PORTS                   NAMES
+1a653adc6f2c  docker.io/library/nginx:latest  nginx -g daemon o...  12 minutes ago  Up 12 minutes             80/tcp                  nginx01
+e6610b6304c2  docker.io/library/nginx:latest  nginx -g daemon o...  12 minutes ago  Exited (0) 9 min ago      0.0.0.0:8080->80/tcp    nginx02
+81bd05147f21  docker.io/library/nginx:latest  nginx -g daemon o...  12 minutes ago  Up 12 minutes             0.0.0.0:8081->80/tcp    nginx03
+3e10449c292c  docker.io/library/nginx:latest  nginx -g daemon o...  12 minutes ago  Up 12 minutes             0.0.0.0:8082->80/tcp    ngnix04
+35c21d0378f7  localhost/py-web:1.0            python server.py      6 minutes ago   Up 6 minutes              0.0.0.0:8080->8080/tcp  web
+49789b08417b  localhost/pg-usuarios:1.0       postgres              5 minutes ago   Up 5 minutes              0.0.0.0:5432->5432/tcp  db</div>
+        <p class="validation-text">El comando <code class="inline">podman ps -a</code> (la bandera <code class="inline">-a</code> incluye todos los contenedores, no solo los activos) muestra el inventario completo del servidor de contenedores al finalizar la práctica. Cada fila incluye el ID corto del contenedor, la imagen de origen, el comando que se está ejecutando como proceso principal, el tiempo de vida, el estado y el mapeo de puertos. Los contenedores con estado <em>Up</em> son aquellos que están actualmente en ejecución y respondiendo: <code class="inline">nginx01</code> está disponible internamente en el puerto 80 sin exposición al host (usado para redes internas entre contenedores), <code class="inline">nginx03</code> está expuesto en el puerto 8081 del host, <code class="inline">ngnix04</code> en el 8082 sirviendo el volumen con la página personalizada, <code class="inline">web</code> con la aplicación Python en el puerto 8080, y <code class="inline">db</code> con PostgreSQL en el puerto 5432. El contenedor <code class="inline">nginx02</code> aparece en estado <em>Exited</em> porque fue parte de ejercicios anteriores de la clase y fue detenido intencionalmente. Los dos contenedores de esta tarea (<code class="inline">db</code> para PostgreSQL y el contenedor de Ubuntu) se validaron correctamente: <code class="inline">db</code> aparece en estado <em>Up</em> y el contenedor de Ubuntu no aparece porque se ejecutó con <code class="inline">--rm</code>, que lo elimina automáticamente al terminar sus validaciones.</p>
+
+        <h2>5. Conclusiones Técnicas</h2>
+        <ul>
+            <li><strong>Persistencia y SELinux:</strong> En Rocky Linux con SELinux en Enforcing, el mapeo de volúmenes
+                locales requiere la bandera <code class="inline">:Z</code> para evitar que el kernel bloquee el acceso
+                al almacenamiento.</li>
+            <li><strong>Segregación de Roles:</strong> Se confirmó que el usuario <code class="inline">reporte</code>
+                solo puede realizar operaciones de consulta y tiene bloqueada cualquier modificación de la base de
+                datos.</li>
+            <li><strong>Automatización en el Build:</strong> El uso de archivos como <code
+                    class="inline">usuarios.txt</code> permite construir imágenes personalizadas listas para producción
+                sin necesidad de interacción manual posterior.</li>
+        </ul>
+    </div>
+
+</body>
+
+</html>

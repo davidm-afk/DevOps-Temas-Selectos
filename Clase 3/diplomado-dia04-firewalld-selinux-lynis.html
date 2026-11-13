@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Día 4 – Contención: firewalld, SELinux y Lynis</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&family=Inter:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --red: #e63946;
+            --orange: #f4a261;
+            --dark: #0d1117;
+            --darker: #090d13;
+            --card: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --green: #3fb950;
+            --cyan: #58a6ff;
+            --yellow: #d29922;
+            --purple: #bc8cff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--darker);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(230, 57, 70, .04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(230, 57, 70, .04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slide {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 50px 60px;
+            width: 92%;
+            max-width: 1000px;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 0 60px rgba(230, 57, 70, .12), 0 20px 60px rgba(0, 0, 0, .6);
+            display: none;
+            animation: slideIn .4s cubic-bezier(.16, 1, .3, 1);
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .slide-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.2em;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+            line-height: 1.1;
+        }
+
+        .slide-title span {
+            color: var(--red);
+        }
+
+        .slide-subtitle {
+            font-size: 1em;
+            color: var(--muted);
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slide-subtitle::before {
+            content: '';
+            display: inline-block;
+            width: 32px;
+            height: 2px;
+            background: var(--red);
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1em;
+            color: var(--cyan);
+            margin: 24px 0 10px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        h4 {
+            font-family: 'Syne', sans-serif;
+            font-size: .95em;
+            color: var(--text);
+            margin: 18px 0 8px;
+        }
+
+        p {
+            color: var(--muted);
+            line-height: 1.7;
+            margin-bottom: 12px;
+            font-size: .95em;
+        }
+
+        strong.hl {
+            color: var(--text);
+        }
+
+        .cover {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 500px;
+        }
+
+        .cover .badge {
+            background: rgba(230, 57, 70, .12);
+            border: 1px solid rgba(230, 57, 70, .3);
+            color: var(--red);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .8em;
+            padding: 6px 16px;
+            border-radius: 100px;
+            margin-bottom: 28px;
+            letter-spacing: .08em;
+        }
+
+        .cover h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 3.2em;
+            font-weight: 800;
+            line-height: 1.05;
+            margin-bottom: 20px;
+        }
+
+        .cover h1 em {
+            font-style: normal;
+            color: var(--red);
+        }
+
+        .cover .desc {
+            color: var(--muted);
+            font-size: 1.05em;
+            max-width: 560px;
+            line-height: 1.7;
+            margin-bottom: 40px;
+        }
+
+        .cover .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            width: 100%;
+            max-width: 680px;
+        }
+
+        .meta-card {
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .meta-card .val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4em;
+            font-weight: 700;
+            color: var(--red);
+        }
+
+        .meta-card .lbl {
+            font-size: .75em;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .day-banner {
+            background: linear-gradient(135deg, rgba(230, 57, 70, .18), rgba(188, 140, 255, .08));
+            border: 1px solid rgba(230, 57, 70, .25);
+            border-radius: 12px;
+            padding: 30px 36px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .day-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 3.5em;
+            font-weight: 800;
+            color: var(--red);
+            opacity: .25;
+            line-height: 1;
+        }
+
+        .day-info h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.6em;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .day-info p {
+            margin: 0;
+            color: var(--muted);
+            font-size: .9em;
+        }
+
+        .cmd-block {
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin: 14px 0;
+            overflow: hidden;
+        }
+
+        .cmd-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, .02);
+        }
+
+        .cmd-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .75em;
+            color: var(--muted);
+            letter-spacing: .05em;
+        }
+
+        .copy-btn {
+            background: rgba(88, 166, 255, .1);
+            border: 1px solid rgba(88, 166, 255, .2);
+            color: var(--cyan);
+            font-size: .72em;
+            padding: 3px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all .2s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(88, 166, 255, .2);
+        }
+
+        .copy-btn.copied {
+            color: var(--green);
+            border-color: rgba(63, 185, 80, .3);
+            background: rgba(63, 185, 80, .1);
+        }
+
+        pre {
+            padding: 16px 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .82em;
+            line-height: 1.7;
+            color: var(--text);
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .kw {
+            color: var(--red);
+        }
+
+        .cm {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .val {
+            color: var(--green);
+        }
+
+        .opt {
+            color: var(--orange);
+        }
+
+        .var {
+            color: var(--purple);
+        }
+
+        .str {
+            color: var(--yellow);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 14px;
+            margin: 16px 0;
+        }
+
+        .info-box {
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 20px;
+        }
+
+        .info-box.warn {
+            border-left: 3px solid var(--yellow);
+        }
+
+        .info-box.danger {
+            border-left: 3px solid var(--red);
+        }
+
+        .info-box.tip {
+            border-left: 3px solid var(--green);
+        }
+
+        .info-box.note {
+            border-left: 3px solid var(--cyan);
+        }
+
+        .info-box.bonus {
+            border-left: 3px solid var(--purple);
+        }
+
+        .info-box .icon {
+            font-size: 1.1em;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .info-box strong {
+            color: var(--text);
+            font-size: .9em;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .info-box p {
+            margin: 0;
+            font-size: .83em;
+        }
+
+        .checklist {
+            list-style: none;
+            margin: 12px 0;
+        }
+
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: .88em;
+            color: var(--muted);
+            transition: background .2s;
+            cursor: pointer;
+        }
+
+        .checklist li:hover {
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .checklist li::before {
+            content: '□';
+            color: var(--border);
+            font-size: 1em;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .checklist li.done {
+            color: var(--green);
+        }
+
+        .checklist li.done::before {
+            content: '✓';
+            color: var(--green);
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 14px 0;
+        }
+
+        .pill {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .75em;
+            padding: 4px 12px;
+            border-radius: 100px;
+            border: 1px solid;
+        }
+
+        .pill.red {
+            color: var(--red);
+            border-color: rgba(230, 57, 70, .3);
+            background: rgba(230, 57, 70, .07);
+        }
+
+        .pill.green {
+            color: var(--green);
+            border-color: rgba(63, 185, 80, .3);
+            background: rgba(63, 185, 80, .07);
+        }
+
+        .pill.cyan {
+            color: var(--cyan);
+            border-color: rgba(88, 166, 255, .3);
+            background: rgba(88, 166, 255, .07);
+        }
+
+        .pill.purple {
+            color: var(--purple);
+            border-color: rgba(188, 140, 255, .3);
+            background: rgba(188, 140, 255, .07);
+        }
+
+        .pill.yellow {
+            color: var(--yellow);
+            border-color: rgba(210, 153, 34, .3);
+            background: rgba(210, 153, 34, .07);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0;
+            font-size: .85em;
+        }
+
+        th {
+            background: rgba(255, 255, 255, .04);
+            color: var(--cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 9px 14px;
+            color: var(--muted);
+            border-bottom: 1px solid rgba(48, 54, 61, .5);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, .02);
+            color: var(--text);
+        }
+
+        td code,
+        p code,
+        li code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .9em;
+            color: var(--orange);
+        }
+
+        /* ── Agenda timeline ── */
+        .agenda {
+            list-style: none;
+            margin: 18px 0;
+        }
+
+        .agenda li {
+            display: grid;
+            grid-template-columns: 92px 1fr;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(48, 54, 61, .5);
+            align-items: start;
+        }
+
+        .agenda li:last-child {
+            border-bottom: none;
+        }
+
+        .agenda .time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .78em;
+            color: var(--red);
+            padding-top: 2px;
+        }
+
+        .agenda .what strong {
+            display: block;
+            color: var(--text);
+            font-size: .92em;
+            margin-bottom: 2px;
+        }
+
+        .agenda .what span {
+            color: var(--muted);
+            font-size: .82em;
+        }
+
+        /* ── CIA triad ── */
+        .triad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin: 20px 0;
+        }
+
+        .triad-card {
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px 20px;
+            text-align: center;
+        }
+
+        .triad-card .ico {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .triad-card h4 {
+            font-size: 1.05em;
+            margin: 0 0 8px;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .triad-card p {
+            font-size: .82em;
+            margin: 0;
+        }
+
+        .triad-card.c {
+            border-top: 3px solid var(--cyan);
+        }
+
+        .triad-card.i {
+            border-top: 3px solid var(--purple);
+        }
+
+        .triad-card.a {
+            border-top: 3px solid var(--green);
+        }
+
+        .triad-card.c h4 {
+            color: var(--cyan);
+        }
+
+        .triad-card.i h4 {
+            color: var(--purple);
+        }
+
+        .triad-card.a h4 {
+            color: var(--green);
+        }
+
+        /* ── Quiz ── */
+        .quiz-option {
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin: 10px 0;
+            cursor: pointer;
+            font-size: .9em;
+            color: var(--muted);
+            transition: all .25s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quiz-option .opt-letter {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .8em;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--muted);
+        }
+
+        .quiz-option:hover {
+            border-color: var(--cyan);
+            color: var(--text);
+        }
+
+        .quiz-option.correct {
+            border-color: var(--green);
+            background: rgba(63, 185, 80, .08);
+            color: var(--green);
+        }
+
+        .quiz-option.correct .opt-letter {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .quiz-option.incorrect {
+            border-color: var(--red);
+            background: rgba(230, 57, 70, .08);
+            color: var(--red);
+        }
+
+        .quiz-option.incorrect .opt-letter {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .quiz-feedback {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .88em;
+            text-align: center;
+            margin-top: 16px;
+            min-height: 22px;
+        }
+
+        /* ── Navigation ── */
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .82em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all .2s;
+            letter-spacing: .03em;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .nav-btn:disabled {
+            opacity: .3;
+            cursor: not-allowed;
+        }
+
+        .nav-btn:disabled:hover {
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .78em;
+            color: var(--muted);
+            z-index: 100;
+        }
+
+        .slide-counter span {
+            color: var(--red);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--red), var(--purple));
+            transition: width .4s ease;
+            z-index: 200;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        @media (max-width: 700px) {
+
+            .two-col,
+            .triad,
+            .cover .meta-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .slide {
+                padding: 30px 28px;
+            }
+
+            .cover h1 {
+                font-size: 2.2em;
+            }
+
+            .agenda li {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+        }
+
+
+        /* ── Cabecera del reto Lynis ── */
+        .lynis-header {
+            background: linear-gradient(135deg, rgba(188, 140, 255, .15), rgba(88, 166, 255, .08));
+            border: 1px solid rgba(188, 140, 255, .25);
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .lynis-icon {
+            font-size: 2.8em;
+            line-height: 1;
+        }
+
+        .lynis-header h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .lynis-header p {
+            margin: 0;
+            font-size: .88em;
+            color: var(--muted);
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="slide-counter">
+        <span id="current">1</span> / <span id="total">1</span>
+    </div>
+
+    <div class="container">
+
+        <!-- ═══════════ PORTADA ═══════════ -->
+        <div class="slide active">
+            <div class="cover">
+                <div class="badge">SÁBADO 9:00 – 14:00 · ROCKY LINUX 9</div>
+                <h1>Contención:<br>firewalld, <em>SELinux</em> y Lynis</h1>
+                <p class="desc">
+                    Ayer montamos los controles que <strong class="hl">detectan</strong>. Hoy montamos
+                    los que <strong class="hl">impiden</strong>: filtrar lo que llega por la red,
+                    contener lo que ya está dentro — y al final, medir todo el servidor.
+                </p>
+                <div class="meta-grid">
+                    <div class="meta-card">
+                        <div class="val">firewalld</div>
+                        <div class="lbl">Perímetro</div>
+                    </div>
+                    <div class="meta-card">
+                        <div class="val">SELinux</div>
+                        <div class="lbl">Contención</div>
+                    </div>
+                    <div class="meta-card">
+                        <div class="val">8</div>
+                        <div class="lbl">Ejercicios</div>
+                    </div>
+                    <div class="meta-card">
+                        <div class="val">🏆</div>
+                        <div class="lbl">Reto Lynis</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ DE DETECTAR A IMPEDIR ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">De detectar <span>a impedir</span></div>
+            <div class="slide-subtitle">El puente con la sesión de ayer</div>
+
+            <p>Los controles se clasifican por <em>cuándo</em> actúan. Un servidor sólido necesita los
+                tres tipos: si sólo detectas, llegas tarde; si sólo previenes, no sabes qué pasó cuando
+                la prevención falla.</p>
+
+            <div class="triad">
+                <div class="triad-card c">
+                    <span class="ico">🛡️</span>
+                    <h4>Preventivos</h4>
+                    <p>Impiden que ocurra<br><br>firewalld · SELinux · SSH sin contraseñas</p>
+                </div>
+                <div class="triad-card i">
+                    <span class="ico">🔍</span>
+                    <h4>Detectivos</h4>
+                    <p>Avisan de que ocurrió<br><br>auditd · lastcomm · tlog · AIDE</p>
+                </div>
+                <div class="triad-card a">
+                    <span class="ico">🔧</span>
+                    <h4>Correctivos</h4>
+                    <p>Restauran el estado<br><br>Respaldos · snapshots · RAID</p>
+                </div>
+            </div>
+
+            <table>
+                <tr>
+                    <th>Escenario</th>
+                    <th>Qué lo detiene hoy</th>
+                </tr>
+                <tr>
+                    <td>Escaneo desde Internet buscando servicios</td>
+                    <td>firewalld con política por defecto denegar</td>
+                </tr>
+                <tr>
+                    <td>Fuerza bruta contra SSH</td>
+                    <td>Rich rule con <em>rate limit</em> + ipset</td>
+                </tr>
+                <tr>
+                    <td>Vulnerabilidad en Apache que da ejecución remota</td>
+                    <td><strong style="color:var(--purple)">SELinux</strong>: el proceso confinado no puede salir de su
+                        dominio</td>
+                </tr>
+                <tr>
+                    <td>Servicio comprometido que intenta leer <code>/etc/shadow</code></td>
+                    <td><strong style="color:var(--purple)">SELinux</strong> lo niega aunque corra como root</td>
+                </tr>
+            </table>
+
+            <div class="info-box note">
+                <span class="icon">🧅</span>
+                <strong>Defensa en profundidad, literal</strong>
+                <p>firewalld actúa en la red, SELinux dentro del kernel, y los controles de ayer
+                    registran ambos. Cuando uno falla, el siguiente sigue en pie — y siempre queda
+                    evidencia de lo ocurrido.</p>
+            </div>
+        </div>
+
+        <!-- ═══════════ AGENDA ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">Agenda <span>del sábado</span></div>
+            <div class="slide-subtitle">9:00 a 14:00 · 5 horas</div>
+
+            <ul class="agenda">
+                <li>
+                    <div class="time">09:00 – 09:20</div>
+                    <div class="what"><strong>Repaso y revisión de evidencias</strong>
+                        <span>Qué quedó de ayer · preventivos vs. detectivos vs. correctivos</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="time">09:20 – 10:00</div>
+                    <div class="what"><strong>Teoría — firewalld</strong>
+                        <span>nftables debajo · modelo de zonas · runtime vs. permanent · rich rules</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="time">10:00 – 11:15</div>
+                    <div class="what"><strong>Labs y ejercicios de firewalld</strong>
+                        <span>Zonas · verificación con nmap · rate limit · ipset · registro de denegados</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="time">11:15 – 11:30</div>
+                    <div class="what"><strong>Descanso</strong><span>&nbsp;</span></div>
+                </li>
+                <li>
+                    <div class="time">11:30 – 12:10</div>
+                    <div class="what"><strong>Teoría — SELinux</strong>
+                        <span>DAC vs. MAC · contextos · dominios confinados · por qué nunca se desactiva</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="time">12:10 – 13:15</div>
+                    <div class="what"><strong>Labs y ejercicios de SELinux</strong>
+                        <span>Booleans · fcontext · puertos · troubleshooting real con audit2allow</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="time">13:15 – 14:00</div>
+                    <div class="what"><strong>🏆 Evaluación con Lynis</strong>
+                        <span>Medir · leer el reporte · priorizar · remediar · volver a medir · <strong>punto
+                                extra</strong></span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- ═══════════ TEORÍA FIREWALLD ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">firewalld — <span>filtrado por zonas</span></div>
+            <div class="slide-subtitle">Teoría — qué hay realmente debajo</div>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">arquitectura</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre>  firewall-cmd / firewall-config
+            │
+            ▼
+        firewalld  (demonio, gestiona la política)
+            │
+            ▼
+        nftables   (el motor real en el kernel)
+            │
+            ▼
+     netfilter (hooks del kernel)</pre>
+            </div>
+
+            <p><code>firewalld</code> no <em>es</em> el cortafuegos: es quien <strong class="hl">administra</strong>
+                el cortafuegos. Escribes zonas y servicios, y él traduce a reglas de <code>nftables</code>.
+                Por eso nunca debes mezclar reglas manuales de <code>nft</code> con firewalld: la próxima
+                recarga las borra.</p>
+
+            <h3>El modelo de zonas</h3>
+            <p>Una zona es un <strong class="hl">nivel de confianza</strong>. Cada interfaz o cada origen
+                se asigna a una zona, y la zona define qué se permite.</p>
+
+            <table>
+                <tr>
+                    <th>Zona</th>
+                    <th>Comportamiento por defecto</th>
+                    <th>Uso típico</th>
+                </tr>
+                <tr>
+                    <td><code>drop</code></td>
+                    <td>Descarta todo sin responder</td>
+                    <td>Interfaz hostil / lista negra</td>
+                </tr>
+                <tr>
+                    <td><code>block</code></td>
+                    <td>Rechaza con mensaje ICMP</td>
+                    <td>Bloqueo explícito</td>
+                </tr>
+                <tr>
+                    <td><code>public</code></td>
+                    <td>Sólo servicios explícitamente abiertos</td>
+                    <td><strong style="color:var(--text)">Por defecto en Rocky 9</strong></td>
+                </tr>
+                <tr>
+                    <td><code>internal</code> / <code>work</code></td>
+                    <td>Confianza media</td>
+                    <td>Red corporativa</td>
+                </tr>
+                <tr>
+                    <td><code>trusted</code></td>
+                    <td><strong style="color:var(--red)">Acepta todo</strong></td>
+                    <td>Casi nunca — es un agujero</td>
+                </tr>
+            </table>
+
+            <div class="info-box danger">
+                <span class="icon">⏳</span>
+                <strong>El error que todos cometen: runtime vs. permanent</strong>
+                <p>Sin <code>--permanent</code>, el cambio vive sólo hasta la próxima recarga o
+                    reinicio. Con <code>--permanent</code>, se guarda pero <strong>no aplica</strong> hasta
+                    un <code>--reload</code>. La regla práctica: prueba en runtime, y cuando funcione
+                    ejecuta <code>firewall-cmd --runtime-to-permanent</code>.</p>
+            </div>
+        </div>
+
+        <!-- ═══════════ LAB FW ZONAS ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">Lab — <span>Diseñar las zonas</span></div>
+            <div class="slide-subtitle">firewalld — política por defecto denegar</div>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — fotografía inicial</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="kw">firewall-cmd</span> <span class="opt">--state</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--get-default-zone</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--get-active-zones</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--list-all</span>          <span class="cm"># zona activa, en detalle</span>
+
+<span class="cm"># Lo que hay realmente en el kernel</span>
+<span class="kw">nft</span> list ruleset | <span class="kw">head</span> <span class="opt">-30</span></pre>
+            </div>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — zona de administración (SSH y Cockpit sólo desde
+                        ahí)</span><button class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="cm"># 1. Crear la zona</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --new-zone=</span>admin
+
+<span class="cm"># 2. Sólo la red de administración entra por ella</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --zone=</span>admin <span class="opt">--add-source=</span><span class="val">192.168.100.0/24</span>
+
+<span class="cm"># 3. Servicios permitidos en esa zona</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --zone=</span>admin <span class="opt">--add-service=</span>ssh
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --zone=</span>admin <span class="opt">--add-service=</span>cockpit
+
+<span class="cm"># 4. Y se lo QUITAMOS a public (aquí es donde se cierra de verdad)</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --zone=</span>public <span class="opt">--remove-service=</span>ssh
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --zone=</span>public <span class="opt">--remove-service=</span>cockpit
+
+<span class="kw">firewall-cmd</span> <span class="opt">--reload</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--zone=</span>admin <span class="opt">--list-all</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--zone=</span>public <span class="opt">--list-all</span></pre>
+            </div>
+
+            <div class="info-box danger">
+                <span class="icon">🚪</span>
+                <strong>Otra vez: deja una sesión abierta</strong>
+                <p>Vas a mover SSH de zona. Si te equivocas con el rango de origen, te quedas fuera.
+                    Mantén una segunda conexión viva, y si trabajas en VM, ten a mano la consola.</p>
+            </div>
+
+            <h3>Verificar desde fuera — la única prueba válida</h3>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — desde la VM CLIENTE</span><button
+                        class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="cm"># Guarda el ANTES si aún no lo hiciste</span>
+<span class="kw">nmap</span> <span class="opt">-sS -p-</span> <span class="opt">--open</span> <span class="val">192.168.100.10</span> <span class="opt">-oN</span> nmap-antes.txt
+
+<span class="cm"># Aplica los cambios y repite</span>
+<span class="kw">nmap</span> <span class="opt">-sS -p-</span> <span class="opt">--open</span> <span class="val">192.168.100.10</span> <span class="opt">-oN</span> nmap-despues.txt
+<span class="kw">diff</span> nmap-antes.txt nmap-despues.txt</pre>
+            </div>
+        </div>
+
+        <!-- ═══════════ LAB FW RICH RULES ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">Lab — <span>Rich rules y rate limit</span></div>
+            <div class="slide-subtitle">firewalld — contener la fuerza bruta</div>
+
+            <p>Las <em>rich rules</em> permiten condiciones que una zona simple no expresa: origen,
+                límite de tasa, registro y acción, todo en una sola regla.</p>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — limitar intentos de SSH</span><button
+                        class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="cm"># Máximo 3 conexiones nuevas por minuto por origen</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --zone=</span>admin <span class="opt">--add-rich-rule=</span><span class="str">'
+  rule service name="ssh" accept limit value="3/m"'</span>
+
+<span class="cm"># Registrar los intentos, con límite para no inundar el log</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --zone=</span>admin <span class="opt">--add-rich-rule=</span><span class="str">'
+  rule service name="ssh" log prefix="SSH-INTENTO " level="notice" limit value="5/m" accept'</span>
+
+<span class="kw">firewall-cmd</span> <span class="opt">--reload</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--zone=</span>admin <span class="opt">--list-rich-rules</span></pre>
+            </div>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — probarlo desde el cliente</span><button
+                        class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="cm"># Lanza 10 conexiones seguidas: las últimas deben caer</span>
+<span class="kw">for</span> i <span class="kw">in</span> $(<span class="kw">seq</span> 1 10); <span class="kw">do</span>
+    <span class="kw">timeout</span> 3 <span class="kw">ssh</span> <span class="opt">-o</span> BatchMode=yes noexiste@<span class="val">192.168.100.10</span> <span class="kw">true</span>
+    <span class="kw">echo</span> <span class="str">"intento $i -> $?"</span>
+<span class="kw">done</span>
+
+<span class="cm"># En el SERVIDOR, ver los registros generados</span>
+<span class="kw">journalctl</span> <span class="opt">-k</span> <span class="opt">--since</span> <span class="str">"5 min ago"</span> | <span class="kw">grep</span> <span class="str">"SSH-INTENTO"</span></pre>
+            </div>
+
+            <h3>Registrar todo lo denegado</h3>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="kw">firewall-cmd</span> <span class="opt">--set-log-denied=</span>all
+<span class="kw">firewall-cmd</span> <span class="opt">--get-log-denied</span>
+
+<span class="cm"># Escanea desde el cliente y observa aquí</span>
+<span class="kw">journalctl</span> <span class="opt">-kf</span> | <span class="kw">grep</span> <span class="opt">-i</span> <span class="str">'REJECT\|DROP'</span></pre>
+            </div>
+
+            <div class="info-box warn">
+                <span class="icon">📊</span>
+                <strong>Esto es A.8.15 y A.8.16 otra vez</strong>
+                <p>Un firewall que bloquea pero no registra te deja sin saber si te están atacando.
+                    <code>--set-log-denied</code> convierte al cortafuegos en una fuente de detección, no
+                    sólo de prevención. Correlaciónalo con lo de ayer.
+                </p>
+            </div>
+        </div>
+
+        <!-- ═══════════ EJERCICIOS FIREWALLD ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">Ejercicios <span>de firewalld</span></div>
+            <div class="slide-subtitle">firewalld — 4 ejercicios en parejas</div>
+
+            <h3>Ejercicio 1 — Superficie de ataque, antes y después</h3>
+            <p style="font-size:.88em">Con <code>nmap</code> desde el cliente, documenta cada puerto
+                abierto <em>y justifica por escrito por qué sigue abierto</em>. El puerto que no puedas
+                justificar, ciérralo.</p>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — cliente</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="kw">nmap</span> <span class="opt">-sS -sV -p-</span> <span class="opt">--open</span> <span class="val">192.168.100.10</span></pre>
+            </div>
+            <p style="font-size:.85em"><strong class="hl">ISO A.8.20, A.8.21 · CIS · NIST SC-7 · MITRE T1046</strong>
+            </p>
+
+            <h3>Ejercicio 2 — La zona storage del iSCSI</h3>
+            <p style="font-size:.88em">Recupera el target iSCSI de la sesión de almacenamiento: el 3260
+                debe responder <strong>sólo</strong> desde la red de almacenamiento y ser invisible desde
+                cualquier otra.</p>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="kw">firewall-cmd</span> <span class="opt">--permanent --new-zone=</span>storage
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --zone=</span>storage <span class="opt">--add-source=</span><span class="val">10.30.0.0/24</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --zone=</span>storage <span class="opt">--add-service=</span>iscsi-target
+<span class="kw">firewall-cmd</span> <span class="opt">--reload</span>
+
+<span class="cm"># Verificación: desde el cliente correcto SÍ, desde otro NO</span>
+<span class="kw">nmap</span> <span class="opt">-p</span> 3260 <span class="val">192.168.100.10</span></pre>
+            </div>
+            <p style="font-size:.85em"><strong class="hl">ISO A.8.22 (segregación de redes)</strong></p>
+
+            <h3>Ejercicio 3 — Lista negra con ipset</h3>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="kw">firewall-cmd</span> <span class="opt">--permanent --new-ipset=</span>blacklist <span class="opt">--type=</span>hash:ip
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --ipset=</span>blacklist <span class="opt">--add-entry=</span><span class="val">192.168.100.99</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --zone=</span>drop <span class="opt">--add-source=</span>ipset:blacklist
+<span class="kw">firewall-cmd</span> <span class="opt">--reload</span>
+
+<span class="kw">firewall-cmd</span> <span class="opt">--info-ipset=</span>blacklist
+<span class="cm"># Pon la IP de tu compañero y comprueba que ya no llega</span></pre>
+            </div>
+            <p style="font-size:.85em"><strong class="hl">¿Por qué un ipset y no 500 rich rules?</strong>
+                Responde en tu bitácora: la diferencia es de rendimiento en el kernel.</p>
+
+            <h3>Ejercicio 4 — El botón de pánico</h3>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — SÓLO desde la consola de la VM</span><button
+                        class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="kw">firewall-cmd</span> <span class="opt">--panic-on</span>     <span class="cm"># corta TODO el tráfico</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--query-panic</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--panic-off</span></pre>
+            </div>
+            <p style="font-size:.85em"><strong class="hl">¿Cuándo se usa?</strong> Contención de un
+                incidente en curso — ISO 27035. Discútelo: ¿aislar el servidor o dejarlo vivo para
+                recolectar evidencia?</p>
+        </div>
+
+        <!-- ═══════════ TEORÍA SELINUX ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">SELinux — <span>control de acceso obligatorio</span></div>
+            <div class="slide-subtitle">Teoría — la contención dentro del kernel</div>
+
+            <table>
+                <tr>
+                    <th></th>
+                    <th>DAC (permisos clásicos)</th>
+                    <th>MAC (SELinux)</th>
+                </tr>
+                <tr>
+                    <td><strong style="color:var(--text)">Quién decide</strong></td>
+                    <td>El dueño del archivo</td>
+                    <td>La política del sistema</td>
+                </tr>
+                <tr>
+                    <td><strong style="color:var(--text)">Base de la decisión</strong></td>
+                    <td>UID y GID</td>
+                    <td>Contexto del proceso y del objeto</td>
+                </tr>
+                <tr>
+                    <td><strong style="color:var(--text)">¿root lo evade?</strong></td>
+                    <td style="color:var(--red)">Sí, siempre</td>
+                    <td style="color:var(--green)">No: root también está sujeto</td>
+                </tr>
+                <tr>
+                    <td><strong style="color:var(--text)">Protege contra</strong></td>
+                    <td>Errores de permisos</td>
+                    <td><strong>Procesos comprometidos</strong></td>
+                </tr>
+            </table>
+
+            <p>Un proceso confinado sólo puede hacer <strong class="hl">lo que su dominio permite</strong>,
+                aunque corra como root. Si explotan Apache, el atacante queda atrapado en el dominio
+                <code>httpd_t</code>: no puede leer <code>/etc/shadow</code>, ni escribir fuera de sus rutas,
+                ni abrir puertos arbitrarios.
+            </p>
+
+            <h3>El contexto</h3>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">formato</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre>system_u : object_r : httpd_sys_content_t : s0
+  │          │            │                   │
+usuario     rol         TIPO               nivel MLS
+                    (lo que importa
+                     en el 99% de los casos)</pre>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-box note">
+                    <span class="icon">🎯</span>
+                    <strong>Modo <em>targeted</em></strong>
+                    <p>Es el de Rocky 9 por defecto: sólo confina los servicios de red, no los procesos
+                        de usuario. Cubre exactamente lo que está expuesto.</p>
+                </div>
+                <div class="info-box warn">
+                    <span class="icon">📋</span>
+                    <strong>Los tres modos</strong>
+                    <p><code>Enforcing</code> aplica y registra · <code>Permissive</code> sólo registra
+                        (útil para diagnosticar) · <code>Disabled</code> no hace nada y exige reinicio
+                        para volver.</p>
+                </div>
+            </div>
+
+            <div class="info-box danger">
+                <span class="icon">🚫</span>
+                <strong>La regla de oro: <code>setenforce 0</code> no es una solución</strong>
+                <p>Es la respuesta más común en foros y la peor de todas: apaga el control que estaba
+                    haciendo su trabajo. Si algo no funciona, el problema es una etiqueta o un boolean —
+                    y hoy aprendes a encontrarlo en dos minutos. <strong>En el reto de Lynis, desactivar
+                        SELinux descalifica.</strong></p>
+            </div>
+        </div>
+
+        <!-- ═══════════ LAB SELINUX BÁSICO ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">Lab — <span>Explorar y booleans</span></div>
+            <div class="slide-subtitle">SELinux — lo que se resuelve sin escribir política</div>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — estado y contextos</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="kw">dnf</span> install <span class="opt">-y</span> policycoreutils-python-utils setroubleshoot-server httpd
+
+<span class="kw">sestatus</span>
+<span class="kw">getenforce</span>                  <span class="cm"># debe decir Enforcing</span>
+<span class="kw">grep</span> <span class="opt">-E</span> <span class="str">'^SELINUX'</span> /etc/selinux/config
+
+<span class="cm"># Contexto de archivos y de procesos</span>
+<span class="kw">ls</span> <span class="opt">-Z</span> /var/www/html
+<span class="kw">systemctl</span> enable <span class="opt">--now</span> httpd
+<span class="kw">ps</span> <span class="opt">-eZ</span> | <span class="kw">grep</span> httpd      <span class="cm"># dominio httpd_t</span>
+<span class="kw">id</span> <span class="opt">-Z</span>                       <span class="cm"># tu propio contexto</span></pre>
+            </div>
+
+            <h3>Booleans: interruptores de la política</h3>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="cm"># Ver los booleans de httpd y su estado</span>
+<span class="kw">getsebool</span> <span class="opt">-a</span> | <span class="kw">grep</span> httpd
+
+<span class="cm"># Descripción legible de cada uno</span>
+<span class="kw">semanage</span> boolean <span class="opt">-l</span> | <span class="kw">grep</span> httpd_can_network_connect
+
+<span class="cm"># Activar de forma PERMANENTE (-P; sin él se pierde al reiniciar)</span>
+<span class="kw">setsebool</span> <span class="opt">-P</span> httpd_can_network_connect on
+<span class="kw">getsebool</span> httpd_can_network_connect</pre>
+            </div>
+
+            <div class="info-box tip">
+                <span class="icon">💡</span>
+                <strong>Antes de escribir una política, busca el boolean</strong>
+                <p>La mayoría de los casos reales — que Apache se conecte a una base de datos, que use
+                    NFS, que envíe correo — ya están previstos como boolean. Escribir un módulo propio es
+                    el último recurso, no el primero.</p>
+            </div>
+        </div>
+
+        <!-- ═══════════ LAB SELINUX FCONTEXT ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">Lab — <span>Troubleshooting real</span></div>
+            <div class="slide-subtitle">SELinux — mover el DocumentRoot y arreglarlo</div>
+
+            <p>Este es el caso clásico y el que más tiempo hace perder en producción. Vamos a
+                provocarlo a propósito y resolverlo con método.</p>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — 1. provocar el fallo</span><button
+                        class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="kw">mkdir</span> <span class="opt">-p</span> /web/sitio
+<span class="kw">echo</span> <span class="str">"&lt;h1&gt;Diplomado&lt;/h1&gt;"</span> &gt; /web/sitio/index.html
+<span class="kw">chown</span> <span class="opt">-R</span> apache:apache /web
+<span class="kw">chmod</span> <span class="opt">-R</span> <span class="val">755</span> /web
+
+<span class="kw">sed</span> <span class="opt">-i</span> <span class="str">'s|^DocumentRoot.*|DocumentRoot "/web/sitio"|'</span> /etc/httpd/conf/httpd.conf
+<span class="kw">systemctl</span> restart httpd
+
+<span class="kw">curl</span> <span class="opt">-I</span> http://localhost/     <span class="cm"># 403 Forbidden</span>
+<span class="cm"># Los permisos DAC son correctos... y aun así falla.</span></pre>
+            </div>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — 2. diagnosticar (aquí se usa lo de
+                        ayer)</span><button class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="cm"># Buscar las denegaciones recientes</span>
+<span class="kw">ausearch</span> <span class="opt">-m</span> AVC <span class="opt">-ts</span> recent <span class="opt">-i</span>
+
+<span class="cm"># Explicación legible de POR QUÉ se denegó</span>
+<span class="kw">ausearch</span> <span class="opt">-m</span> AVC <span class="opt">-ts</span> recent | <span class="kw">audit2why</span>
+
+<span class="cm"># Análisis completo con sugerencias</span>
+<span class="kw">sealert</span> <span class="opt">-a</span> /var/log/audit/audit.log | <span class="kw">head</span> <span class="opt">-40</span>
+
+<span class="cm"># Comparar etiquetas: la ruta nueva vs. la correcta</span>
+<span class="kw">ls</span> <span class="opt">-Zd</span> /web/sitio /var/www/html</pre>
+            </div>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — 3. la solución CORRECTA</span><button
+                        class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="cm"># Declarar la regla de etiquetado (permanente)</span>
+<span class="kw">semanage</span> fcontext <span class="opt">-a -t</span> httpd_sys_content_t <span class="str">"/web(/.*)?"</span>
+
+<span class="cm"># Aplicarla a lo que ya existe</span>
+<span class="kw">restorecon</span> <span class="opt">-Rv</span> /web
+
+<span class="kw">ls</span> <span class="opt">-Z</span> /web/sitio
+<span class="kw">curl</span> <span class="opt">-I</span> http://localhost/     <span class="cm"># 200 OK, con Enforcing activo</span></pre>
+            </div>
+
+            <div class="info-box warn">
+                <span class="icon">⚠️</span>
+                <strong><code>chcon</code> no, <code>semanage fcontext</code> sí</strong>
+                <p><code>chcon</code> cambia la etiqueta ahora, pero el próximo <code>restorecon</code>
+                    o relabel del sistema la revierte y el servicio vuelve a fallar — meses después, sin
+                    que nadie entienda por qué. <code>semanage fcontext</code> cambia la <em>regla</em>,
+                    no sólo la etiqueta.</p>
+            </div>
+        </div>
+
+        <!-- ═══════════ EJERCICIOS SELINUX ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">Ejercicios <span>de SELinux</span></div>
+            <div class="slide-subtitle">SELinux — 4 ejercicios</div>
+
+            <h3>Ejercicio 5 — Puerto no estándar</h3>
+            <p style="font-size:.88em">Haz que Apache escuche en el 8088. Fallará: SELinux controla qué
+                puertos puede abrir cada dominio.</p>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="kw">sed</span> <span class="opt">-i</span> <span class="str">'s/^Listen 80/Listen 8088/'</span> /etc/httpd/conf/httpd.conf
+<span class="kw">systemctl</span> restart httpd      <span class="cm"># falla</span>
+<span class="kw">journalctl</span> <span class="opt">-xeu</span> httpd | <span class="kw">tail</span> <span class="opt">-20</span>
+
+<span class="cm"># Ver qué puertos tiene permitidos el tipo http_port_t</span>
+<span class="kw">semanage</span> port <span class="opt">-l</span> | <span class="kw">grep</span> <span class="opt">-w</span> http_port_t
+
+<span class="cm"># Autorizar el nuevo</span>
+<span class="kw">semanage</span> port <span class="opt">-a -t</span> http_port_t <span class="opt">-p</span> tcp <span class="val">8088</span>
+<span class="kw">systemctl</span> restart httpd      <span class="cm"># ahora sí</span>
+
+<span class="cm"># Y no olvides el firewall: son DOS controles distintos</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--permanent --zone=</span>public <span class="opt">--add-port=</span><span class="val">8088/tcp</span>
+<span class="kw">firewall-cmd</span> <span class="opt">--reload</span></pre>
+            </div>
+            <p style="font-size:.85em"><strong class="hl">La lección:</strong> firewalld y SELinux son
+                capas independientes. Abrir una no abre la otra.</p>
+
+            <h3>Ejercicio 6 — SELinux conteniendo un ataque</h3>
+            <p style="font-size:.88em">Simula un Apache comprometido y comprueba la contención:</p>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="cm"># Ejecutar un comando DENTRO del dominio de httpd</span>
+<span class="kw">runcon</span> <span class="opt">-t</span> httpd_t <span class="kw">cat</span> /etc/shadow
+<span class="cm"># Permiso denegado, aunque lo lances como root</span>
+
+<span class="kw">ausearch</span> <span class="opt">-m</span> AVC <span class="opt">-ts</span> recent <span class="opt">-i</span> | <span class="kw">tail</span>
+
+<span class="cm"># Compara: como root SIN confinar, sí puede</span>
+<span class="kw">cat</span> /etc/shadow | <span class="kw">head</span> <span class="opt">-2</span></pre>
+            </div>
+            <p style="font-size:.85em"><strong class="hl">Esta es la demo que vale para tu exposición
+                    final</strong> — ISO A.8.22 · NIST AC-3, SC-39 · MITRE T1068</p>
+
+            <h3>Ejercicio 7 — Módulo de política propio</h3>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — el último recurso, con criterio</span><button
+                        class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="cm"># Generar un módulo a partir de las denegaciones registradas</span>
+<span class="kw">ausearch</span> <span class="opt">-m</span> AVC <span class="opt">-ts</span> recent | <span class="kw">audit2allow</span> <span class="opt">-M</span> mi_politica
+
+<span class="cm"># LEER lo generado ANTES de instalarlo</span>
+<span class="kw">cat</span> mi_politica.te
+
+<span class="cm"># Instalar sólo si lo entendiste y lo justificas</span>
+<span class="cm">#   semodule -i mi_politica.pp</span>
+<span class="kw">semodule</span> <span class="opt">-l</span> | <span class="kw">head</span></pre>
+            </div>
+            <p style="font-size:.85em"><strong class="hl">Pregunta obligatoria en tu bitácora:</strong>
+                ¿en qué casos <em>NO</em> debes instalar lo que genera <code>audit2allow</code>? Pista: si
+                la denegación era el control funcionando correctamente contra un ataque.</p>
+
+            <h3>Ejercicio 8 — Confinar usuarios</h3>
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash</span><button class="copy-btn"
+                        onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="kw">semanage</span> login <span class="opt">-l</span>
+<span class="kw">semanage</span> login <span class="opt">-a -s</span> user_u auditado1
+
+<span class="cm"># Ahora ese usuario no puede usar su/sudo aunque esté en sudoers</span>
+<span class="cm"># Compruébalo entrando como auditado1 e intentando sudo</span></pre>
+            </div>
+            <p style="font-size:.85em"><strong class="hl">ISO A.8.2 · A.8.3</strong> — otra capa sobre el
+                control de privilegios de ayer.</p>
+        </div>
+
+        <!-- ═══════════ LYNIS TEORÍA ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">Lynis — <span>medir el hardening</span></div>
+            <div class="slide-subtitle">🏆 Evaluación — la fase Check del ciclo PDCA</div>
+
+            <p>Lynis recorre cientos de comprobaciones sobre el sistema real y devuelve un
+                <strong class="hl">hardening index</strong> de 0 a 100, más una lista priorizada de
+                sugerencias. Es la auditoría técnica automatizada que cierra el ciclo.
+            </p>
+
+            <table>
+                <tr>
+                    <th>Qué revisa</th>
+                    <th>Ejemplos que ya trabajaste</th>
+                </tr>
+                <tr>
+                    <td>Autenticación</td>
+                    <td>pwquality, faillock, caducidad de contraseñas</td>
+                </tr>
+                <tr>
+                    <td>SSH</td>
+                    <td><code>PermitRootLogin</code>, <code>MaxAuthTries</code>, banner</td>
+                </tr>
+                <tr>
+                    <td>Registro y auditoría</td>
+                    <td>auditd activo, psacct, retención de logs</td>
+                </tr>
+                <tr>
+                    <td>Cortafuegos</td>
+                    <td>firewalld activo con política restrictiva</td>
+                </tr>
+                <tr>
+                    <td>Hardening del kernel</td>
+                    <td>parámetros <code>sysctl</code></td>
+                </tr>
+                <tr>
+                    <td>Sistemas de archivos</td>
+                    <td>opciones <code>nodev,nosuid,noexec</code></td>
+                </tr>
+                <tr>
+                    <td>Frameworks</td>
+                    <td>SELinux en Enforcing</td>
+                </tr>
+                <tr>
+                    <td>Malware y parches</td>
+                    <td>escáner presente, actualizaciones pendientes</td>
+                </tr>
+            </table>
+
+            <div class="info-grid">
+                <div class="info-box warn">
+                    <span class="icon">📏</span>
+                    <strong>Los límites del número</strong>
+                    <p>El índice mide <em>cobertura de comprobaciones</em>, no seguridad real. Un
+                        servidor con 90 puntos y una contraseña de base de datos en un repositorio público
+                        está comprometido igual. Úsalo como termómetro, no como certificado.</p>
+                </div>
+                <div class="info-box note">
+                    <span class="icon">📐</span>
+                    <strong>La alternativa formal</strong>
+                    <p>Para una auditoría ISO real se usa <code>oscap</code> con el perfil CIS del SCAP
+                        Security Guide, que emite un reporte trazable control por control. Lynis es más ágil
+                        para el ciclo diario de mejora.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ LAB LYNIS ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">Lab — <span>Medir, priorizar, remediar</span></div>
+            <div class="slide-subtitle">🏆 Evaluación — el ciclo completo en 45 minutos</div>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — 1. instalar y medir</span><button
+                        class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="kw">dnf</span> install <span class="opt">-y</span> epel-release
+<span class="kw">dnf</span> install <span class="opt">-y</span> lynis
+
+<span class="cm"># Auditoría completa (tarda unos minutos)</span>
+<span class="kw">lynis</span> audit system
+
+<span class="cm"># Tu calificación inicial — anótala</span>
+<span class="kw">grep</span> hardening_index /var/log/lynis-report.dat</pre>
+            </div>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — 2. leer el reporte con criterio</span><button
+                        class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="cm"># Advertencias: lo más grave, atiéndelas primero</span>
+<span class="kw">grep</span> <span class="str">'^warning\[\]='</span> /var/log/lynis-report.dat
+
+<span class="cm"># Sugerencias: cuántas y cuáles</span>
+<span class="kw">grep</span> <span class="opt">-c</span> <span class="str">'^suggestion\[\]='</span> /var/log/lynis-report.dat
+<span class="kw">grep</span> <span class="str">'^suggestion\[\]='</span> /var/log/lynis-report.dat | <span class="kw">head</span> <span class="opt">-25</span>
+
+<span class="cm"># Detalle de una prueba concreta (usa el ID que te salió)</span>
+<span class="kw">lynis</span> show details SSH-7408</pre>
+            </div>
+
+            <div class="info-box danger">
+                <span class="icon">🎯</span>
+                <strong>Prioriza por riesgo, no por cantidad</strong>
+                <p>Habrá 60 sugerencias. Atender 40 triviales sube el número y no mejora la seguridad.
+                    Ataca primero: <strong>warnings</strong>, luego autenticación y SSH, luego registro y
+                    auditoría, y sólo al final la cosmética. Justifica por escrito cada sugerencia que
+                    decidas <em>no</em> aplicar — eso es una Declaración de Aplicabilidad en miniatura.</p>
+            </div>
+
+            <div class="cmd-block">
+                <div class="cmd-header"><span class="cmd-label">bash — 3. remediar y VOLVER A MEDIR</span><button
+                        class="copy-btn" onclick="copyCmd(this)">Copiar</button></div>
+                <pre><span class="cm"># Guarda el reporte inicial antes de tocar nada</span>
+<span class="kw">cp</span> /var/log/lynis-report.dat /root/lynis-inicial.dat
+
+<span class="cm"># ... aplica remediaciones ...</span>
+
+<span class="kw">lynis</span> audit system
+<span class="kw">grep</span> hardening_index /root/lynis-inicial.dat /var/log/lynis-report.dat
+
+<span class="cm"># CONFIRMA que no rompiste nada</span>
+<span class="kw">systemctl</span> is-active httpd sshd firewalld auditd psacct
+<span class="kw">getenforce</span></pre>
+            </div>
+        </div>
+
+        <!-- ═══════════ CONCURSO ═══════════ -->
+        <div class="slide">
+            <div class="lynis-header">
+                <div class="lynis-icon">🏆</div>
+                <div>
+                    <h2>El reto del punto extra</h2>
+                    <p>Mejor <em>hardening index</em> del grupo, con el servidor funcionando</p>
+                </div>
+            </div>
+
+            <h3>Cómo se evalúa</h3>
+            <table>
+                <tr>
+                    <th>Paso</th>
+                    <th>Qué se verifica</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>Ejecutas <code>lynis audit system</code> <strong>en vivo</strong>, frente al grupo</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Se lee el <code>hardening_index</code> del reporte recién generado</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Se comprueba que los servicios exigidos siguen operando</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>Se comprueba que ningún control obligatorio fue desactivado</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>Entregas el comparativo inicial vs. final con tus justificaciones</td>
+                </tr>
+            </table>
+
+            <h3>Servicios que deben seguir funcionando</h3>
+            <div class="pill-row">
+                <span class="pill green">sshd (con llave)</span>
+                <span class="pill green">httpd</span>
+                <span class="pill green">firewalld</span>
+                <span class="pill green">auditd</span>
+                <span class="pill green">psacct</span>
+                <span class="pill green">target iSCSI</span>
+                <span class="pill green">grabación tlog</span>
+            </div>
+
+            <div class="info-box danger">
+                <span class="icon">🚫</span>
+                <strong>Descalificación automática</strong>
+                <p>SELinux en <code>Permissive</code> o <code>Disabled</code> · <code>auditd</code>
+                    detenido · <code>firewalld</code> detenido · cualquier servicio de la lista caído ·
+                    configuraciones que sólo existen en memoria y no sobreviven a un reinicio.
+                    <strong>Se reinicia el servidor antes de medir.</strong>
+                </p>
+            </div>
+
+            <div class="info-box tip">
+                <span class="icon">📈</span>
+                <strong>Dónde están los puntos que faltan</strong>
+                <p>Lo de ayer y hoy ya suma mucho. Lo que suele faltar: parámetros de
+                    <code>sysctl</code>, opciones de montaje en <code>/etc/fstab</code>, límites en
+                    <code>/etc/security/limits.conf</code>, retención del journal, un escáner de malware
+                    instalado y <code>dnf-automatic</code> para parches de seguridad.
+                </p>
+            </div>
+        </div>
+
+        <!-- ═══════════ QUIZ ═══════════ -->
+        <div class="slide quiz-block">
+            <div class="slide-title">Checkpoint <span>final</span></div>
+            <div class="slide-subtitle">Cierre de la sesión</div>
+
+            <p style="font-size:1.05em;color:var(--text);margin-bottom:20px">
+                Configuraste Apache en el puerto 8088 y abriste el 8088 en firewalld, pero el servicio
+                no arranca. <code>journalctl</code> muestra un error al abrir el socket. ¿Qué pasa?</p>
+
+            <div class="quiz-option" onclick="checkAnswer(this,false)"><span class="opt-letter">A</span> El firewall no
+                aplicó el cambio: falta <code>--reload</code></div>
+            <div class="quiz-option" onclick="checkAnswer(this,true)"><span class="opt-letter">B</span> SELinux no
+                permite a <code>httpd_t</code> abrir ese puerto: falta
+                <code>semanage port -a -t http_port_t -p tcp 8088</code></div>
+            <div class="quiz-option" onclick="checkAnswer(this,false)"><span class="opt-letter">C</span> Hay que poner
+                SELinux en Permissive para que Apache funcione</div>
+            <div class="quiz-option" onclick="checkAnswer(this,false)"><span class="opt-letter">D</span> Los permisos
+                DAC del <code>DocumentRoot</code> están mal</div>
+
+            <div class="quiz-feedback"></div>
+
+            <div class="info-box note" style="margin-top:24px">
+                <span class="icon">💡</span>
+                <strong>Por qué</strong>
+                <p>Son dos controles independientes sobre el mismo puerto: firewalld decide si el
+                    <em>tráfico llega</em>, SELinux decide si el <em>proceso puede escuchar</em>. Abrir uno
+                    no abre el otro — y la respuesta correcta nunca es apagar SELinux.
+                </p>
+            </div>
+        </div>
+
+        <!-- ═══════════ EVIDENCIAS ═══════════ -->
+        <div class="slide">
+            <div class="slide-title">Evidencias <span>de la sesión</span></div>
+            <div class="slide-subtitle">Lo que archivas en tu expediente</div>
+
+            <ul class="checklist">
+                <li><code>nmap</code> antes y después, con la justificación escrita de cada puerto que dejaste abierto
+                </li>
+                <li><code>firewall-cmd --zone=admin --list-all</code> y <code>--zone=public --list-all</code></li>
+                <li>Registro de <code>SSH-INTENTO</code> en el journal, con conexiones cortadas por el rate limit</li>
+                <li><code>firewall-cmd --info-ipset=blacklist</code> y prueba de que la IP bloqueada no llega</li>
+                <li>Zona <code>storage</code>: 3260 accesible desde la red de almacenamiento e invisible desde otra</li>
+                <li><code>curl -I</code> devolviendo 200 con el DocumentRoot movido y SELinux en
+                    <strong>Enforcing</strong></li>
+                <li>Salida de <code>ausearch -m AVC</code> + <code>audit2why</code> del fallo que provocaste</li>
+                <li><code>ls -Z</code> antes y después de <code>restorecon</code></li>
+                <li><code>semanage port -l | grep http_port_t</code> con el 8088 autorizado</li>
+                <li><strong>Ejercicio 6:</strong> <code>runcon -t httpd_t cat /etc/shadow</code> denegado, con su AVC
+                </li>
+                <li><code>mi_politica.te</code> generado, con tu justificación de instalarlo o no</li>
+                <li><strong>Reporte Lynis inicial vs. final</strong> con ambos <code>hardening_index</code></li>
+                <li>Lista de sugerencias <em>no</em> aplicadas, cada una con su razón</li>
+            </ul>
+
+            <div class="info-box tip">
+                <span class="icon">⭐</span>
+                <strong>La que vale doble</strong>
+                <p>El Ejercicio 6: SELinux negándole a un proceso confinado el acceso a
+                    <code>/etc/shadow</code> aunque corra como root. Es la demostración más contundente de
+                    todo el módulo y sirve tal cual para tu exposición final.
+                </p>
+            </div>
+        </div>
+
+        <!-- ═══════════ CIERRE ═══════════ -->
+        <div class="slide">
+            <div class="day-banner"
+                style="background:linear-gradient(135deg,rgba(88,166,255,.15),rgba(63,185,80,.08));border-color:rgba(88,166,255,.25)">
+                <div class="day-num" style="color:var(--cyan)">▶</div>
+                <div class="day-info">
+                    <h2>Siguiente sesión — Identidad centralizada con FreeIPA</h2>
+                    <p>Kerberos y LDAP · enrolamiento de clientes · HBAC · sudo centralizado · OTP para administradores
+                    </p>
+                </div>
+            </div>
+
+            <h3>Qué llevas hasta aquí</h3>
+            <table>
+                <tr>
+                    <th>Eje</th>
+                    <th>Controles que ya tienes montados</th>
+                </tr>
+                <tr>
+                    <td><strong style="color:var(--green)">Disponibilidad</strong></td>
+                    <td>RAID, LVM, bonding, iSCSI, respaldos con restauración probada</td>
+                </tr>
+                <tr>
+                    <td><strong style="color:var(--cyan)">Confidencialidad</strong></td>
+                    <td>Contraseñas, SSH con llaves, crypto-policies, firewalld, SELinux</td>
+                </tr>
+                <tr>
+                    <td><strong style="color:var(--purple)">Integridad y trazabilidad</strong></td>
+                    <td>tlog, psacct, auditctl, registro de denegados del firewall</td>
+                </tr>
+                <tr>
+                    <td><strong style="color:var(--yellow)">Medición</strong></td>
+                    <td>Hardening index de Lynis con ciclo de remediación documentado</td>
+                </tr>
+            </table>
+
+            <h3>El problema que aparece ahora</h3>
+            <p>Todo esto lo configuraste <strong class="hl">servidor por servidor</strong>. Con veinte
+                equipos es inviable: veinte listas de usuarios, veinte políticas de contraseñas, veinte
+                juegos de llaves SSH. La siguiente sesión resuelve exactamente eso — y además le da un
+                hogar central a la política de grabación de sesión que dejamos pendiente.</p>
+
+            <h3>Qué preparas</h3>
+            <ul class="checklist">
+                <li>VM adicional con Rocky 9 mínima, <strong>2 vCPU y 4 GB de RAM</strong>, para el servidor IPA</li>
+                <li>Nombre de dominio decidido (ej. <code>lab.diplomado.local</code>)</li>
+                <li>Resolución de nombres funcionando entre tus VMs — FreeIPA es exigente con el DNS</li>
+                <li>Hora sincronizada: <code>timedatectl</code> con NTP activo <em>(Kerberos rechaza tickets con desfase
+                        &gt; 5 min)</em></li>
+                <li>Los puertos de FreeIPA previstos en tu diseño de zonas de hoy</li>
+            </ul>
+
+            <div class="info-box note">
+                <span class="icon">🧾</span>
+                <strong>Antes de irte</strong>
+                <p>Reinicia el servidor y comprueba que <em>todo</em> sigue en pie: servicios activos,
+                    SELinux en Enforcing, zonas del firewall, montajes y grabación. Lo que no sobrevive al
+                    reinicio no cuenta como control implementado.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← Anterior</button>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Siguiente →</button>
+    </div>
+
+    <script>
+        let current = 0;
+        const slides = document.querySelectorAll('.slide');
+        const total = slides.length;
+        document.getElementById('total').textContent = total;
+
+        function showSlide(n) {
+            slides.forEach(s => s.classList.remove('active'));
+            if (n >= total) current = total - 1;
+            if (n < 0) current = 0;
+            slides[current].classList.add('active');
+            slides[current].scrollTop = 0;
+            document.getElementById('current').textContent = current + 1;
+            document.getElementById('prevBtn').disabled = current === 0;
+            document.getElementById('nextBtn').disabled = current === total - 1;
+            document.getElementById('progressBar').style.width = ((current + 1) / total * 100).toFixed(1) + '%';
+        }
+
+        function changeSlide(dir) {
+            current += dir;
+            showSlide(current);
+        }
+
+        function copyCmd(btn) {
+            const pre = btn.closest('.cmd-block').querySelector('pre');
+            navigator.clipboard.writeText(pre.innerText).then(() => {
+                btn.textContent = '✓ Copiado';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copiar';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function checkAnswer(el, correct) {
+            const block = el.closest('.quiz-block');
+            const opts = block.querySelectorAll('.quiz-option');
+            const fb = block.querySelector('.quiz-feedback');
+            if (correct) {
+                opts.forEach(o => o.style.pointerEvents = 'none');
+                el.classList.add('correct');
+                fb.style.color = 'var(--green)';
+                fb.textContent = '✓ Correcto';
+            } else {
+                el.classList.add('incorrect');
+                fb.style.color = 'var(--red)';
+                fb.textContent = '✗ Incorrecto — inténtalo de nuevo';
+                setTimeout(() => {
+                    el.classList.remove('incorrect');
+                    fb.textContent = '';
+                }, 1500);
+            }
+        }
+
+        // Checklist interactiva
+        document.querySelectorAll('.checklist li').forEach(li => {
+            li.addEventListener('click', () => li.classList.toggle('done'));
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight' || e.key === ' ') changeSlide(1);
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+        });
+
+        showSlide(0);
+    </script>
+</body>
+
+</html>
