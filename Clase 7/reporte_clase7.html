@@ -1,155 +1,302 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Reporte de Entrega: Playbook Prerrequisitos de Kubernetes</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        body { font-family: 'Roboto', Arial, Helvetica, sans-serif; background-color: #ffffff; color: #202124; line-height: 1.5; padding: 0; }
-        .doc-page { max-width: 816px; margin: 0 auto; background: #ffffff; padding: 10px 0; }
-        h1.doc-title { font-size: 22px; font-weight: 700; color: #1f1f1f; line-height: 1.25; margin-bottom: 12px; }
-        .doc-meta { font-size: 13px; color: #5f6368; line-height: 1.6; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #dadce0; }
-        .doc-meta strong { color: #202124; }
-        h2 { font-size: 16px; font-weight: 700; color: #1f1f1f; margin-top: 22px; margin-bottom: 10px; page-break-after: avoid; }
-        h3 { font-size: 13.5px; font-weight: 700; color: #3c4043; margin-top: 14px; margin-bottom: 6px; page-break-after: avoid; }
-        p { font-size: 13px; color: #202124; margin-bottom: 8px; }
-        ol, ul { font-size: 13px; color: #202124; padding-left: 24px; margin-bottom: 10px; }
-        li { margin-bottom: 4px; }
-        .code-box { background-color: #000000 !important; border-radius: 4px; padding: 12px 14px; font-family: 'Consolas', 'JetBrains Mono', monospace; font-size: 10.5px; line-height: 1.45; color: #f8fafc; overflow-x: auto; margin: 10px 0 14px 0; white-space: pre-wrap; word-break: break-all; page-break-inside: avoid; }
-        .terminal-screenshot { background-color: #000000 !important; border-radius: 4px; padding: 12px 14px; margin: 10px 0 8px 0; font-family: 'Consolas', 'JetBrains Mono', monospace; font-size: 10.5px; line-height: 1.45; color: #f8fafc; overflow-x: auto; white-space: pre-wrap; word-break: break-all; page-break-inside: avoid; }
-        .terminal-screenshot .prompt { color: #22c55e !important; font-weight: 600; }
-        .terminal-screenshot .cmd { color: #ffffff !important; font-weight: 600; }
-        .terminal-screenshot .out-highlight { color: #38bdf8 !important; }
-        .terminal-screenshot .out-success { color: #4ade80 !important; font-weight: 600; }
-        code.inline { font-family: 'Consolas', monospace; background: #f1f3f4; padding: 2px 4px; border-radius: 3px; font-size: 11.5px; }
-        .page-break { page-break-before: always; }
-        @page { margin: 1.8cm 1.6cm; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, Helvetica, sans-serif;
+            background-color: #ffffff;
+            color: #202124;
+            line-height: 1.5;
+            padding: 0;
+        }
+
+        .doc-page {
+            max-width: 816px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 10px 0;
+        }
+
+        h1.doc-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1f1f1f;
+            line-height: 1.25;
+            margin-bottom: 12px;
+        }
+
+        .doc-meta {
+            font-size: 13px;
+            color: #5f6368;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #dadce0;
+        }
+
+        .doc-meta strong {
+            color: #202124;
+        }
+
+        h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1f1f1f;
+            margin-top: 22px;
+            margin-bottom: 10px;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #3c4043;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            page-break-after: avoid;
+        }
+
+        p {
+            font-size: 13px;
+            color: #202124;
+            margin-bottom: 8px;
+        }
+
+        ol,
+        ul {
+            font-size: 13px;
+            color: #202124;
+            padding-left: 24px;
+            margin-bottom: 10px;
+        }
+
+        li {
+            margin-bottom: 4px;
+        }
+
+        .code-box {
+            background-color: #000000 !important;
+            border-radius: 4px;
+            padding: 12px 14px;
+            font-family: 'Consolas', 'JetBrains Mono', monospace;
+            font-size: 10.5px;
+            line-height: 1.45;
+            color: #f8fafc;
+            overflow-x: auto;
+            margin: 10px 0 14px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            page-break-inside: avoid;
+        }
+
+        .terminal-screenshot {
+            background-color: #000000 !important;
+            border-radius: 4px;
+            padding: 12px 14px;
+            margin: 10px 0 8px 0;
+            font-family: 'Consolas', 'JetBrains Mono', monospace;
+            font-size: 10.5px;
+            line-height: 1.45;
+            color: #f8fafc;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            page-break-inside: avoid;
+        }
+
+        .terminal-screenshot .prompt {
+            color: #22c55e !important;
+            font-weight: 600;
+        }
+
+        .terminal-screenshot .cmd {
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+
+        .terminal-screenshot .out-highlight {
+            color: #38bdf8 !important;
+        }
+
+        .terminal-screenshot .out-success {
+            color: #4ade80 !important;
+            font-weight: 600;
+        }
+
+        code.inline {
+            font-family: 'Consolas', monospace;
+            background: #f1f3f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 11.5px;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        @page {
+            margin: 1.8cm 1.6cm;
+        }
     </style>
 </head>
+
 <body>
-<div class="doc-page">
-    <h1 class="doc-title">Reporte de Entrega: Playbook Prerrequisitos de Kubernetes</h1>
-    <div class="doc-meta">
-        <p><strong>Asignatura:</strong> Temas Selectos de Redes y Seguridad (TSIC2 / DevOps)</p>
-        <p><strong>Profesor:</strong> Daniel Guerrero</p>
-        <p><strong>Tema:</strong> Playbook para instalar todos los prerrequisitos de Kubernetes (Weekly Cloud / RHEL 9)</p>
-        <p><strong>Entorno de ejecución:</strong> Rocky Linux 10.2 (Red Quartz) - Ansible Core 2.16 &bull; containerd.io &bull; K8s v1.31.14</p>
-        <p><strong>Alumno:</strong> David Moroni Sánchez Galván</p>
-        <p><strong>Fecha de entrega:</strong> 30 de Octubre de 2026</p>
+    <div class="doc-page">
+        <h1 class="doc-title">Reporte de Entrega: Playbook Prerrequisitos de Kubernetes</h1>
+        <div class="doc-meta">
+            <p><strong>Asignatura:</strong> Temas Selectos de Redes y Seguridad (TSIC2 / DevOps)</p>
+            <p><strong>Profesor:</strong> Daniel Guerrero</p>
+            <p><strong>Tema:</strong> Playbook para instalar todos los prerrequisitos de Kubernetes (Weekly Cloud / RHEL
+                9)</p>
+            <p><strong>Entorno de ejecución:</strong> Rocky Linux 10.2 (Red Quartz) - Ansible Core 2.16 &bull;
+                containerd.io &bull; K8s v1.31.14</p>
+            <p><strong>Alumno:</strong> David Moroni Sánchez Galván</p>
+            <p><strong>Fecha de entrega:</strong> 30 de Octubre de 2026</p>
+        </div>
+
+        <h2>1. Objetivo de la Tarea</h2>
+        <p>Construir y ejecutar de forma automatizada con Ansible el playbook que configura la totalidad de los
+            prerrequisitos del sistema operativo para Kubernetes, siguiendo la guía técnica de instalación en RHEL 9:
+        </p>
+        <ul>
+            <li>Desactivación inmediata y permanente de la memoria Swap.</li>
+            <li>Configuración de SELinux en modo Permissive.</li>
+            <li>Carga persistente de los módulos del kernel <code class="inline">overlay</code> y <code
+                    class="inline">br_netfilter</code>.</li>
+            <li>Habilitación de parámetros de red sysctl (<code class="inline">bridge-nf-call-iptables</code> e <code
+                    class="inline">ip_forward</code>).</li>
+            <li>Instalación y configuración del Container Runtime <code class="inline">containerd</code> con <code
+                    class="inline">SystemdCgroup = true</code>.</li>
+            <li>Configuración del repositorio oficial e instalación de <code class="inline">kubelet</code>, <code
+                    class="inline">kubeadm</code> y <code class="inline">kubectl</code>.</li>
+        </ul>
+
+        <h2>2. Ejecución del Playbook (k8s_prerequisitos.yml)</h2>
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ansible]#</span> <span
+                class="cmd">ansible-playbook k8s_prerequisitos.yml</span>
+
+            PLAY [Preparar nodos para Kubernetes (Rocky / RHEL 9)] *************************
+
+            TASK [Gathering Facts] *********************************************************
+            ok: [nodo1]
+
+            TASK [1. Desactivar swap inmediatamente] ***************************************
+            ok: [nodo1]
+
+            TASK [2. Desactivar swap permanentemente en /etc/fstab] ************************
+            ok: [nodo1]
+
+            TASK [3. Poner SELinux en modo permissive] *************************************
+            ok: [nodo1]
+
+            TASK [4. Poner SELinux en modo permissive permanentemente] *********************
+            ok: [nodo1]
+
+            TASK [5. Cargar módulos del kernel para Kubernetes] ****************************
+            ok: [nodo1] => (item=overlay)
+            ok: [nodo1] => (item=br_netfilter)
+
+            TASK [6. Configurar módulos del kernel permanentes] ****************************
+            ok: [nodo1]
+
+            TASK [7. Configurar sysctl para red de Kubernetes] *****************************
+            ok: [nodo1]
+
+            TASK [8. Aplicar sysctl inmediatamente] ****************************************
+            ok: [nodo1]
+
+            TASK [9. Instalar paquetes de prerrequisitos] **********************************
+            ok: [nodo1]
+
+            TASK [10. Añadir repositorio de Docker CE (para containerd)] *******************
+            ok: [nodo1]
+
+            TASK [11. Instalar containerd.io] **********************************************
+            ok: [nodo1]
+
+            TASK [12. Crear directorio de configuración de containerd] *********************
+            ok: [nodo1]
+
+            TASK [13. Generar configuración por defecto de containerd si no existe] ********
+            ok: [nodo1]
+
+            TASK [14. Habilitar SystemdCgroup en containerd] ********************************
+            ok: [nodo1]
+
+            TASK [15. Iniciar y habilitar containerd] **************************************
+            ok: [nodo1]
+
+            TASK [16. Añadir repositorio de Kubernetes v1.31] ******************************
+            ok: [nodo1]
+
+            TASK [17. Instalar kubelet, kubeadm y kubectl] *********************************
+            ok: [nodo1]
+
+            TASK [18. Habilitar kubelet] ***************************************************
+            ok: [nodo1]
+
+            PLAY RECAP *********************************************************************
+            nodo1 : <span class="out-success">ok=19 changed=0 unreachable=0 failed=0 skipped=1</span></div>
+
+        <div class="page-break"></div>
+
+        <h2>3. Evidencias de Validación del Sistema Operativo</h2>
+
+        <h3>3.1 Estado de Memoria Swap y SELinux</h3>
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ansible]#</span> <span class="cmd">free -m
+                | grep Swap && swapon --show</span>
+            Swap: <span class="out-success">0 0 0</span>
+
+            <span class="prompt">[root@localhost ansible]#</span> <span class="cmd">getenforce</span>
+            <span class="out-success">Permissive</span>
+        </div>
+
+        <h3>3.2 Módulos del Kernel y Parámetros de Red Sysctl</h3>
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ansible]#</span> <span class="cmd">lsmod |
+                grep -E 'overlay|br_netfilter'</span>
+            br_netfilter 32768 0
+            bridge 380928 1 br_netfilter
+            overlay 196608 0
+
+            <span class="prompt">[root@localhost ansible]#</span> <span class="cmd">sysctl
+                net.bridge.bridge-nf-call-iptables net.ipv4.ip_forward</span>
+            net.bridge.bridge-nf-call-iptables = <span class="out-success">1</span>
+            net.ipv4.ip_forward = <span class="out-success">1</span>
+        </div>
+
+        <h3>3.3 Estado del Runtime containerd y Versión de Herramientas Kubernetes</h3>
+        <div class="terminal-screenshot"><span class="prompt">[root@localhost ansible]#</span> <span
+                class="cmd">systemctl is-active containerd</span>
+            <span class="out-success">active</span>
+
+            <span class="prompt">[root@localhost ansible]#</span> <span class="cmd">kubeadm version && kubectl version
+                --client && kubelet --version</span>
+            kubeadm version: &version.Info{Major:"1", Minor:"31", GitVersion:"<span
+                class="out-success">v1.31.14</span>"}
+            Client Version: <span class="out-success">v1.31.14</span>
+            Kubernetes <span class="out-success">v1.31.14</span>
+        </div>
+
+        <h2>4. Conclusiones</h2>
+        <ol>
+            <li>Se estandarizó la configuración de la máquina virtual mediante un proceso declarativo y reproducible.
+            </li>
+            <li>El sistema operativo cumple con la totalidad de los requerimientos técnicos para iniciar el clúster sin
+                errores de preflight.</li>
+        </ol>
     </div>
-
-    <h2>1. Objetivo de la Tarea</h2>
-    <p>Construir y ejecutar de forma automatizada con Ansible el playbook que configura la totalidad de los prerrequisitos del sistema operativo para Kubernetes, siguiendo la guía técnica de instalación en RHEL 9:</p>
-    <ul>
-        <li>Desactivación inmediata y permanente de la memoria Swap.</li>
-        <li>Configuración de SELinux en modo Permissive.</li>
-        <li>Carga persistente de los módulos del kernel <code class="inline">overlay</code> y <code class="inline">br_netfilter</code>.</li>
-        <li>Habilitación de parámetros de red sysctl (<code class="inline">bridge-nf-call-iptables</code> e <code class="inline">ip_forward</code>).</li>
-        <li>Instalación y configuración del Container Runtime <code class="inline">containerd</code> con <code class="inline">SystemdCgroup = true</code>.</li>
-        <li>Configuración del repositorio oficial e instalación de <code class="inline">kubelet</code>, <code class="inline">kubeadm</code> y <code class="inline">kubectl</code>.</li>
-    </ul>
-
-    <h2>2. Ejecución del Playbook (k8s_prerequisitos.yml)</h2>
-    <div class="terminal-screenshot"><span class="prompt">[root@localhost ansible]#</span> <span class="cmd">ansible-playbook k8s_prerequisitos.yml</span>
-
-PLAY [Preparar nodos para Kubernetes (Rocky / RHEL 9)] *************************
-
-TASK [Gathering Facts] *********************************************************
-ok: [nodo1]
-
-TASK [1. Desactivar swap inmediatamente] ***************************************
-ok: [nodo1]
-
-TASK [2. Desactivar swap permanentemente en /etc/fstab] ************************
-ok: [nodo1]
-
-TASK [3. Poner SELinux en modo permissive] *************************************
-ok: [nodo1]
-
-TASK [4. Poner SELinux en modo permissive permanentemente] *********************
-ok: [nodo1]
-
-TASK [5. Cargar módulos del kernel para Kubernetes] ****************************
-ok: [nodo1] => (item=overlay)
-ok: [nodo1] => (item=br_netfilter)
-
-TASK [6. Configurar módulos del kernel permanentes] ****************************
-ok: [nodo1]
-
-TASK [7. Configurar sysctl para red de Kubernetes] *****************************
-ok: [nodo1]
-
-TASK [8. Aplicar sysctl inmediatamente] ****************************************
-ok: [nodo1]
-
-TASK [9. Instalar paquetes de prerrequisitos] **********************************
-ok: [nodo1]
-
-TASK [10. Añadir repositorio de Docker CE (para containerd)] *******************
-ok: [nodo1]
-
-TASK [11. Instalar containerd.io] **********************************************
-ok: [nodo1]
-
-TASK [12. Crear directorio de configuración de containerd] *********************
-ok: [nodo1]
-
-TASK [13. Generar configuración por defecto de containerd si no existe] ********
-ok: [nodo1]
-
-TASK [14. Habilitar SystemdCgroup en containerd] ********************************
-ok: [nodo1]
-
-TASK [15. Iniciar y habilitar containerd] **************************************
-ok: [nodo1]
-
-TASK [16. Añadir repositorio de Kubernetes v1.31] ******************************
-ok: [nodo1]
-
-TASK [17. Instalar kubelet, kubeadm y kubectl] *********************************
-ok: [nodo1]
-
-TASK [18. Habilitar kubelet] ***************************************************
-ok: [nodo1]
-
-PLAY RECAP *********************************************************************
-nodo1                      : <span class="out-success">ok=19   changed=0    unreachable=0    failed=0    skipped=1</span></div>
-
-    <div class="page-break"></div>
-
-    <h2>3. Evidencias de Validación del Sistema Operativo</h2>
-
-    <h3>3.1 Estado de Memoria Swap y SELinux</h3>
-    <div class="terminal-screenshot"><span class="prompt">[root@localhost ansible]#</span> <span class="cmd">free -m | grep Swap && swapon --show</span>
-Swap:              <span class="out-success">0           0           0</span>
-
-<span class="prompt">[root@localhost ansible]#</span> <span class="cmd">getenforce</span>
-<span class="out-success">Permissive</span></div>
-
-    <h3>3.2 Módulos del Kernel y Parámetros de Red Sysctl</h3>
-    <div class="terminal-screenshot"><span class="prompt">[root@localhost ansible]#</span> <span class="cmd">lsmod | grep -E 'overlay|br_netfilter'</span>
-br_netfilter           32768  0
-bridge                380928  1 br_netfilter
-overlay               196608  0
-
-<span class="prompt">[root@localhost ansible]#</span> <span class="cmd">sysctl net.bridge.bridge-nf-call-iptables net.ipv4.ip_forward</span>
-net.bridge.bridge-nf-call-iptables = <span class="out-success">1</span>
-net.ipv4.ip_forward = <span class="out-success">1</span></div>
-
-    <h3>3.3 Estado del Runtime containerd y Versión de Herramientas Kubernetes</h3>
-    <div class="terminal-screenshot"><span class="prompt">[root@localhost ansible]#</span> <span class="cmd">systemctl is-active containerd</span>
-<span class="out-success">active</span>
-
-<span class="prompt">[root@localhost ansible]#</span> <span class="cmd">kubeadm version && kubectl version --client && kubelet --version</span>
-kubeadm version: &version.Info{Major:"1", Minor:"31", GitVersion:"<span class="out-success">v1.31.14</span>"}
-Client Version: <span class="out-success">v1.31.14</span>
-Kubernetes <span class="out-success">v1.31.14</span></div>
-
-    <h2>4. Conclusiones</h2>
-    <ol>
-        <li>Se estandarizó la configuración de la máquina virtual mediante un proceso declarativo y reproducible.</li>
-        <li>El sistema operativo cumple con la totalidad de los requerimientos técnicos para iniciar el clúster sin errores de preflight.</li>
-    </ol>
-</div>
 </body>
+
 </html>
