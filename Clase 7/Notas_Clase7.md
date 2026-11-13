@@ -227,3 +227,4 @@ kubectl get pods -A
 > kubectl taint nodes --all node-role.kubernetes.io/control-plane-
 > ```
 > Para un clúster con Control Plane + Worker separados, se necesita una segunda VM y se une con el comando `kubeadm join` que genera el `kubeadm init`.
+

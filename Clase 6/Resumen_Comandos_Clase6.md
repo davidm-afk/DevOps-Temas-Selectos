@@ -77,3 +77,4 @@ id panda; ls -ld /opt/zoologico                  # Verificar usuarios.yml
 curl -s localhost:8088                           # Verificar web.yml
 curl -s localhost:8088/salud.html                # → OK
 ```
+

@@ -358,3 +358,4 @@ nodo1 : ok=4  changed=0  unreachable=0  failed=0
 PLAY RECAP (web.yml 1ª corrida):
 nodo1 : ok=6  changed=3  unreachable=0  failed=0
 ```
+

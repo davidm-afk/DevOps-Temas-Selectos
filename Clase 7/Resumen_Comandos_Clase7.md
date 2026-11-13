@@ -84,3 +84,4 @@ kubectl logs <pod> -n <ns>                    # Logs de un Pod
 kubectl exec -it <pod> -- bash                # Shell en un Pod
 kubectl get events -n <ns> --sort-by='.lastTimestamp'
 ```
+

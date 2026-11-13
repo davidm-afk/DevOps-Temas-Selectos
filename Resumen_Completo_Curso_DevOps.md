@@ -395,3 +395,111 @@ DevOps-Temas-Selectos/
 > **VM:** `ssh root@192.168.71.128` (Rocky Linux 10.2, VMnet8 NAT)  
 > **Proyecto Ansible:** `/root/devops2026/ansible/`  
 > **Kubernetes v1.31.14** instalado y listo para `kubeadm init`
+
+
+---
+
+## 🚀 Clase 8 — Kubernetes: Clúster Multi-Nodo, Objetos Avanzados y Ejercicio Integrador
+
+### Objetivo
+Implementar un clúster Kubernetes funcional con 1 Control Plane y 1 Worker mediante kubeadm, desplegar la red de pods con Flannel CNI, y ejecutar laboratorios completos de los objetos fundamentales de Kubernetes.
+
+### Arquitectura del Clúster
+
+| Nodo | Rol | IP (VMware NAT) |
+|:---|:---|:---|
+| **k8s-master** | Control Plane | 192.168.71.128 |
+| **k8s-worker1** | Worker Node | 192.168.71.X |
+
+**Stack tecnológico:** Kubernetes v1.31.14 · containerd · Flannel CNI · Ansible (automatización de prerequisitos)
+
+### Flujo de Despliegue
+
+1. **Clonar VM** → Crear k8s-worker1 como Full Clone de la VM master en VMware
+2. **Configurar identidad** → Hostnames y /etc/hosts en ambos nodos
+3. **Automatizar prerequisitos** → nsible-playbook k8s_prerequisitos.yml en ambos nodos
+4. **Inicializar master** → kubeadm init --apiserver-advertise-address=192.168.71.128 --pod-network-cidr=10.244.0.0/16
+5. **Configurar kubectl** → Copiar dmin.conf a ~/.kube/config
+6. **Instalar CNI Flannel** → kubectl apply -f kube-flannel.yml
+7. **Unir worker** → kubeadm join 192.168.71.128:6443 --token ... --discovery-token-ca-cert-hash ...
+8. **Verificar** → kubectl get nodes (ambos en Ready)
+
+### Laboratorios Realizados
+
+| Lab | Tema | Concepto Clave |
+|:---|:---|:---|
+| **Lab 01** | Namespaces | Aislamiento lógico del clúster por entorno |
+| **Lab 02** | Pods (Básico, Sidecar, Init) | Unidad mínima; patrones multi-contenedor |
+| **Lab 03** | ConfigMaps y Hot Reload | Desacoplamiento config; volumen vs env-var |
+| **Lab 04** | Secrets | Gestión de credenciales (Base64 ≠ cifrado) |
+| **Lab 05** | ServiceAccount + RBAC | Identidad de aplicación; control de acceso |
+| **Lab 06** | Deployments, Escalado, Rollback | Orquestación, Rolling Updates, self-healing |
+| **Lab 08** | Ejercicio Integrador | Todo-en-uno: 6 objetos en un solo YAML |
+
+### Ejercicio Integrador (Lab 08) — 	odo-en-uno.yaml
+
+Despliegue completo de la aplicación mi-app en el namespace propio:
+`
+Namespace (mi-app) → ServiceAccount → ConfigMap → Secret → Deployment (3 réplicas) → Service NodePort :30090
+`
+
+Comandos clave:
+`ash
+kubectl apply -f todo-en-uno.yaml
+kubectl get all -n mi-app -o wide
+curl http://192.168.71.128:30090
+`
+
+### Incidencias Reales Documentadas
+
+| Problema | Causa | Solución |
+|:---|:---|:---|
+| kubeadm = 0 bytes | Corrupción de binarios por corte de red durante DNF | dnf reinstall -y kubelet kubeadm kubectl --disableexcludes=kubernetes |
+| crictl: Violación de segmento | Binario crictl dañado | dnf reinstall -y cri-tools --disableexcludes=kubernetes |
+| 
+o space left on device | Partición /var llena (< 1 GB LVM) | Symlink /var/lib/containerd → /container-data en partición raíz |
+| Nodo en NotReady | CNI no instalado | kubectl apply -f kube-flannel.yml |
+
+### Archivos Entregados
+- Notas_Clase8.md — Notas completas con diagramas y comandos
+- Resumen_Comandos_Clase8.md — Referencia rápida
+- Manual_Cluster_K8s.md — Bitácora técnica completa del despliegue
+- Nov_6_Lab_Namespace_y_Pod_Basico.md — Reporte Labs 01-06
+- Nov_12_Reporte_Ejercicio_Integrador_K8s.md — Reporte Lab 08
+- 	areaClusters.md / .pdf — Tarea: reporte de clúster multi-nodo
+
+---
+
+## 📂 Estructura Final del Repositorio (con Clase 8)
+
+```
+DevOps-Temas-Selectos/
+├── Clase 1/           → LVM, instalación Rocky Linux
+├── Clase 2/           → Usuarios, permisos, ACLs, DNF
+├── Clase 3/           → firewalld, SELinux, Lynis
+├── Clase 4/           → Podman, Containerfiles, redes, volúmenes
+│   ├── tarea.md
+│   └── EjercicioClase4/  → server.py, Containerfile, EjercicioTarea
+├── Clase 5/           → Pods, Docker Hub, Quadlet/systemd
+├── Clase 6/           → SSH avanzado + Ansible
+│   └── ansible/       → inventario.ini, ansible.cfg, playbooks, templates
+├── Clase 7/           → Kubernetes prerrequisitos
+│   ├── k8s_prerequisitos.yml
+│   ├── TareaPlaybooks.md
+│   └── kubernetes/    → Material del profesor (Labs 01-14, monitoring, CI/CD)
+├── Clase 8/           → Clúster multi-nodo + Labs K8s avanzados
+│   ├── Notas_Clase8.md
+│   ├── Resumen_Comandos_Clase8.md
+│   ├── Manual_Cluster_K8s.md
+│   ├── Nov_6_Lab_Namespace_y_Pod_Basico.md
+│   ├── Nov_12_Reporte_Ejercicio_Integrador_K8s.md
+│   ├── tareaClusters.md / .pdf
+│   └── Proyecto.md
+├── Examen/            → Examen Módulo 1 DevOps
+├── clase-ansible-kubernetes.html
+└── Resumen_Completo_Curso_DevOps.md
+```
+
+> **VM:** `ssh root@192.168.71.128` (Rocky Linux 10.2, VMnet8 NAT)
+> **Proyecto Ansible:** `/root/devops2026/ansible/`
+> **Kubernetes v1.31.14** con prerequisitos instalados (kubeadm/kubelet/kubectl/containerd)
